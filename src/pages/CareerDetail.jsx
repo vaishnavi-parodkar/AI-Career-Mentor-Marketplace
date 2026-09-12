@@ -111,7 +111,11 @@ export default function CareerDetail() {
               <MetricCard icon={DollarSign} label="Avg. Salary" value={career.market.avgSalary} />
               <MetricCard icon={TrendingUp} label="Job Demand" value={career.market.demand} />
               <MetricCard icon={MapPin} label="Top Location" value={career.market.topLocation} />
-              <MetricCard icon={Globe2} label="Global Opportunities" value={`${career.market.globalOpportunities}%`} />
+              <MetricCard
+  icon={Globe2}
+  label="Global Opportunities"
+  value={career.market.globalOpportunities}
+ />
             </div>
           </Card>
 

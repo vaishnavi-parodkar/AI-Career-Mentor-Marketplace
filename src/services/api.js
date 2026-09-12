@@ -1,92 +1,120 @@
+import { careers } from "../data/careers";
 // ---------------------------------------------------------------
 // API SERVICE LAYER
 // ---------------------------------------------------------------
-// This is the ONLY place UI components should reach for data/auth
-// operations. Right now everything is mocked with localStorage +
-// setTimeout to simulate network latency. When the Spring Boot
-// backend is ready, swap the internals of each function below to
-// real fetch()/axios calls — no component code should need to change,
-// since every function still returns a Promise with the same shape.
+// This file is the bridge between the React frontend and the
+// Spring Boot backend.
 //
-// Suggested real endpoints (Spring Boot):
-//   POST /api/auth/signup
-//   POST /api/auth/login
-//   POST /api/auth/forgot-password
-//   POST /api/auth/reset-password
-//   GET/PUT /api/profile
-//   GET /api/careers
-//   GET /api/careers/:id
-//   POST /api/assessment/submit
-//   GET /api/mentors
-//   POST /api/mentors/:id/chat
+// Frontend: http://localhost:5173
+// Backend:  http://localhost:8080
 // ---------------------------------------------------------------
 
-import { careers } from "../data/careers";
-import { mentors, getMockMentorReply } from "../data/mentors";
+const API_BASE_URL = "http://localhost:8080/api";
 
-const LATENCY = 500;
+// Small helper for all HTTP requests
+const request = async (endpoint, options = {}) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
 
-const delay = (data, ms = LATENCY) =>
-  new Promise((resolve) => setTimeout(() => resolve(data), ms));
+    const data = await response.json().catch(() => ({}));
 
-const USERS_KEY = "pathwise_users";
+    if (!response.ok) {
+      return {
+        success: false,
+        message:
+          data.message ||
+          data.error ||
+          "Something went wrong. Please try again.",
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error("API request failed:", error);
+
+    return {
+      success: false,
+      message:
+        "Unable to connect to the server. Please make sure the backend is running.",
+    };
+  }
+};
+
+// ---------------------------------------------------------------
+// AUTHENTICATION
+// ---------------------------------------------------------------
+
 const SESSION_KEY = "pathwise_session";
-const PROFILE_KEY = "pathwise_profile";
-
-const readUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-const writeUsers = (users) => localStorage.setItem(USERS_KEY, JSON.stringify(users));
 
 export const authApi = {
   signup: async ({ fullName, email, password }) => {
-    const users = readUsers();
-    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return delay({ success: false, message: "An account with this email already exists." });
+    const result = await request("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        name: fullName,
+        email,
+        password,
+      }),
+    });
+
+    if (result.success && result.user) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(result.user));
     }
-    const user = { id: crypto.randomUUID(), fullName, email, password };
-    users.push(user);
-    writeUsers(users);
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, fullName, email }));
-    return delay({ success: true, user: { id: user.id, fullName, email } });
+
+    return result;
   },
 
   login: async ({ email, password }) => {
-    const users = readUsers();
-    const user = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (!user) {
-      // Allow a frictionless demo login for evaluators
-      if (email.toLowerCase() === "demo@pathwise.com" && password === "demo1234") {
-        const demoUser = { id: "demo", fullName: "Demo User", email };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(demoUser));
-        return delay({ success: true, user: demoUser });
-      }
-      return delay({ success: false, message: "Invalid email or password." });
+    const result = await request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    if (result.success && result.user) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(result.user));
     }
-    localStorage.setItem(
-      SESSION_KEY,
-      JSON.stringify({ id: user.id, fullName: user.fullName, email: user.email })
-    );
-    return delay({ success: true, user: { id: user.id, fullName: user.fullName, email: user.email } });
+
+    return result;
   },
 
+  // Google login is still not connected to the backend.
+  // We leave this temporarily so the existing frontend does not break.
   googleLogin: async () => {
-    const user = { id: "google-demo", fullName: "Google User", email: "google.user@gmail.com" };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return delay({ success: true, user });
+    return {
+      success: false,
+      message: "Google login is not connected yet.",
+    };
   },
 
   forgotPassword: async (email) => {
-    return delay({ success: true, message: `Reset link sent to ${email} (mocked).` });
+    return request("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
   },
 
-  resetPassword: async (_newPassword) => {
-    return delay({ success: true, message: "Password reset successful." });
+  resetPassword: async (newPassword) => {
+    return request("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ newPassword }),
+    });
   },
 
   logout: async () => {
     localStorage.removeItem(SESSION_KEY);
-    return delay({ success: true });
+
+    return {
+      success: true,
+    };
   },
 
   getSession: () => {
@@ -95,29 +123,159 @@ export const authApi = {
   },
 };
 
+// ---------------------------------------------------------------
+// CAREER PROFILE
+// ---------------------------------------------------------------
+
 export const profileApi = {
   saveProfile: async (profile) => {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-    return delay({ success: true, profile });
+    const result = await request("/profile", {
+      method: "POST",
+      body: JSON.stringify(profile),
+    });
+
+    return result;
   },
-  getProfile: () => {
-    const raw = localStorage.getItem(PROFILE_KEY);
-    return raw ? JSON.parse(raw) : null;
+
+  getProfile: async (userId) => {
+    return request(`/profile/${userId}`, {
+      method: "GET",
+    });
   },
+
+  updateProfile: async (profile) => {
+    return request("/profile", {
+      method: "PUT",
+      body: JSON.stringify(profile),
+    });
+  },
+};
+
+// ---------------------------------------------------------------
+// CAREERS
+// ---------------------------------------------------------------
+// Backend career API is already available.
+// We keep these calls here so the frontend can eventually use
+// the database instead of mock career data.
+
+// ---------------------------------------------------------------
+// CAREERS
+// ---------------------------------------------------------------
+// Converts the Spring Boot career response into the format
+// expected by the existing React career pages.
+// ---------------------------------------------------------------
+
+const normalizeCareer = (career) => {
+  const scores = [
+    career.analyticalScore ?? 0,
+    career.technicalScore ?? 0,
+    career.communicationScore ?? 0,
+    career.leadershipScore ?? 0,
+    career.creativeScore ?? 0,
+  ];
+
+  const match = Math.round(
+    scores.reduce((total, score) => total + score, 0) / scores.length
+  );
+
+  return {
+    ...career,
+
+    // React uses this as the URL ID.
+    // Backend expects values like "data-analyst".
+    id: career.careerId,
+
+    // Convert comma-separated database strings into arrays.
+    skills: career.skills
+      ? career.skills
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean)
+      : [],
+
+    responsibilities: career.responsibilities
+      ? career.responsibilities
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [],
+
+    // Match score used by CareerCard and CareerDetail.
+    match,
+
+    // Convert backend market fields into the structure
+    // expected by CareerDetail.jsx.
+    market: {
+      avgSalary: career.avgSalary || "Not available",
+      demand: career.demand || "Not available",
+      topLocation: career.topLocation || "Not available",
+      globalOpportunities:
+        career.globalOpportunities || "Not available",
+    },
+  };
 };
 
 export const careerApi = {
-  getAll: async () => delay(careers),
-  getById: async (id) => delay(careers.find((c) => c.id === id) || null),
+  getAll: async () => {
+    const result = await request("/careers", {
+      method: "GET",
+    });
+
+    if (result && result.success === false) {
+      return result;
+    }
+
+    return Array.isArray(result)
+      ? result.map(normalizeCareer)
+      : [];
+  },
+
+  getById: async (id) => {
+    const result = await request(`/careers/${id}`, {
+      method: "GET",
+    });
+
+    if (result && result.success === false) {
+      return result;
+    }
+
+    return result ? normalizeCareer(result) : null;
+  },
 };
+
+// ---------------------------------------------------------------
+// MENTORS
+// ---------------------------------------------------------------
+// Not part of your current first-three-feature assignment.
+// Kept as mock data for now so your friend's frontend continues
+// to work.
+
+import { mentors, getMockMentorReply } from "../data/mentors";
 
 export const mentorApi = {
-  getAll: async () => delay(mentors),
-  getById: async (id) => delay(mentors.find((m) => m.id === id) || null),
-  sendMessage: async (mentor, message) =>
-    delay({ reply: getMockMentorReply(mentor, message) }, 700),
+  getAll: async () => mentors,
+
+  getById: async (id) => {
+    return mentors.find((mentor) => mentor.id === id) || null;
+  },
+
+  sendMessage: async (mentor, message) => ({
+    reply: getMockMentorReply(mentor, message),
+  }),
 };
 
+// ---------------------------------------------------------------
+// CAREER ASSESSMENT
+// ---------------------------------------------------------------
+
 export const assessmentApi = {
-  submit: async (answers) => delay({ success: true, answers }, 800),
+  submit: async (userId, answers) => {
+    return request("/assessment/submit", {
+      method: "POST",
+      body: JSON.stringify({
+        userId,
+        answers,
+      }),
+    });
+  },
 };
