@@ -1,0 +1,22 @@
+package com.aicareer.career_mentor_backend.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.aicareer.career_mentor_backend.entity.Mentor;
+
+@Service
+public class MentorSelectionService {
+
+    private final MentorService mentorService;
+
+    public MentorSelectionService(MentorService mentorService) {
+        this.mentorService = mentorService;
+    }
+
+    public List<Mentor> findMentorsForTrait(String topTrait) {
+
+        return mentorService.getMentorsBySpecialization(topTrait);
+    }
+}
