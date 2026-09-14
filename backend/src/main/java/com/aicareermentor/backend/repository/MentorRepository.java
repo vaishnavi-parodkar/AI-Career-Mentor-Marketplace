@@ -1,10 +1,10 @@
-package com.aicareer.career_mentor_backend.repository;
+package com.aicareermentor.backend.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.aicareer.career_mentor_backend.entity.Mentor;
+import com.aicareermentor.backend.entity.Mentor;
 
 public interface MentorRepository extends JpaRepository<Mentor, Long> {
 

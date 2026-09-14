@@ -1,4 +1,4 @@
-package com.aicareer.career_mentor_backend.entity;
+package com.aicareermentor.backend.entity;
 
 import jakarta.persistence.*;
 

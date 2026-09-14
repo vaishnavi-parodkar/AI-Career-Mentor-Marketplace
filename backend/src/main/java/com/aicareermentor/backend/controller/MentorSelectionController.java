@@ -1,4 +1,4 @@
-package com.aicareer.career_mentor_backend.controller;
+package com.aicareermentor.backend.controller;
 
 import java.util.List;
 
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.aicareer.career_mentor_backend.entity.Mentor;
-import com.aicareer.career_mentor_backend.service.MentorSelectionService;
+import com.aicareermentor.backend.entity.Mentor;
+import com.aicareermentor.backend.service.MentorSelectionService;
 
 @RestController
 @RequestMapping("/api/mentor-selection")

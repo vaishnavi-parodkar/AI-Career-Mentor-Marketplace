@@ -1,6 +1,6 @@
-package com.aicareer.career_mentor_backend.service;
+package com.aicareermentor.backend.service;
 
-import com.aicareer.career_mentor_backend.entity.AssessmentAnswer;
+import com.aicareermentor.backend.entity.AssessmentAnswer;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
