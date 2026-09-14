@@ -17,6 +17,36 @@ public class MentorSelectionService {
 
     public List<Mentor> findMentorsForTrait(String topTrait) {
 
-        return mentorService.getMentorsBySpecialization(topTrait);
+        if (topTrait == null || topTrait.isBlank()) {
+            return List.of();
+        }
+
+        String specialization = mapTraitToSpecialization(topTrait);
+
+        return mentorService.getMentorsBySpecialization(specialization);
+    }
+
+    private String mapTraitToSpecialization(String topTrait) {
+
+        switch (topTrait.toLowerCase()) {
+
+            case "analytical":
+                return "Data Analytics";
+
+            case "technical":
+                return "Software Development";
+
+            case "communication":
+                return "Product Management";
+
+            case "leadership":
+                return "Product Management";
+
+            case "creative":
+                return "Product Management";
+
+            default:
+                return topTrait;
+        }
     }
 }
