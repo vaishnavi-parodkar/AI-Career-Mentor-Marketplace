@@ -1,10 +1,10 @@
-package com.aicareer.career_mentor_backend.service;
+package com.aicareermentor.backend.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.aicareer.career_mentor_backend.entity.Mentor;
+import com.aicareermentor.backend.entity.Mentor;
 
 @Service
 public class MentorSelectionService {

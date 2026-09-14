@@ -1,4 +1,4 @@
-package com.aicareer.career_mentor_backend.controller;
+package com.aicareermentor.backend.controller;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.aicareer.career_mentor_backend.entity.AssessmentAnswer;
-import com.aicareer.career_mentor_backend.service.AssessmentAnswerService;
-import com.aicareer.career_mentor_backend.service.AssessmentResultService;
-import com.aicareer.career_mentor_backend.service.AssessmentService;
+import com.aicareermentor.backend.entity.AssessmentAnswer;
+import com.aicareermentor.backend.service.AssessmentAnswerService;
+import com.aicareermentor.backend.service.AssessmentResultService;
+import com.aicareermentor.backend.service.AssessmentService;
 
 @RestController
 @RequestMapping("/api/assessment-results")

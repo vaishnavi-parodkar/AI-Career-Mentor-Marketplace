@@ -1,7 +1,7 @@
-package com.aicareer.career_mentor_backend.controller;
+package com.aicareermentor.backend.controller;
 
-import com.aicareer.career_mentor_backend.entity.AssessmentAnswer;
-import com.aicareer.career_mentor_backend.service.AssessmentAnswerService;
+import com.aicareermentor.backend.entity.AssessmentAnswer;
+import com.aicareermentor.backend.service.AssessmentAnswerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
