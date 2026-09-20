@@ -3,22 +3,85 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light;
+    --pathwise-focus: #e9877b;
+    --pathwise-focus-offset: #fbf7ed;
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
   }
+
   body {
     @apply bg-cream text-text-dark font-body antialiased;
     overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.6;
   }
-  h1, h2, h3, h4 {
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="tab"]:focus-visible {
+    outline: 2px solid var(--pathwise-focus);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
     @apply font-heading text-dark-green;
+  }
+}
+
+@layer components {
+  .type-eyebrow {
+    @apply text-xs font-semibold leading-5 tracking-[0.12em] text-coral;
+  }
+
+  .type-page-title {
+    @apply font-heading text-3xl font-bold leading-[1.1] text-dark-green sm:text-4xl;
+  }
+
+  .type-section-title {
+    @apply font-heading text-2xl font-bold leading-tight text-dark-green sm:text-3xl;
+  }
+
+  .type-body {
+    @apply text-base leading-7 text-text-dark;
+  }
+
+  .type-supporting {
+    @apply text-[15px] leading-7 text-text-muted;
+  }
+
+  .type-meta {
+    @apply text-xs font-semibold leading-5 text-text-muted;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+  }
+
+  .safe-bottom {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
   }
 }
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  .container-app {
-    @apply mx-auto w-full max-w-app px-4 sm:px-6 lg:px-10;
-  }
+  .container-app { @apply mx-auto w-full max-w-app px-4 sm:px-6 lg:px-10; }
 }

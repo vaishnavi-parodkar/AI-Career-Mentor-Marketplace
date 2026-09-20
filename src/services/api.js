@@ -25,55 +25,100 @@ import { careers } from "../data/careers";
 import { mentors, getMockMentorReply } from "../data/mentors";
 
 const LATENCY = 500;
+const BACKEND_BASE_URL = "http://localhost:8080";
+const SERVER_ERROR_MESSAGE = "Unable to connect to the server. Please try again.";
 
 const delay = (data, ms = LATENCY) =>
   new Promise((resolve) => setTimeout(() => resolve(data), ms));
 
-const USERS_KEY = "pathwise_users";
 const SESSION_KEY = "pathwise_session";
 const PROFILE_KEY = "pathwise_profile";
 
-const readUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-const writeUsers = (users) => localStorage.setItem(USERS_KEY, JSON.stringify(users));
+const requestJson = async (path, options) => {
+  let response;
+
+  try {
+    response = await fetch(`${BACKEND_BASE_URL}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+  } catch {
+    throw new Error(SERVER_ERROR_MESSAGE);
+  }
+
+  const text = await response.text();
+  let data = null;
+
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || text || SERVER_ERROR_MESSAGE);
+  }
+
+  return data;
+};
+
+const normalizeBackendUser = (user) => ({
+  id: user.id,
+  fullName: user.name,
+  email: user.email,
+});
+
+const normalizeList = (value) =>
+  typeof value === "string"
+    ? value.split(",").map((item) => item.trim()).filter(Boolean)
+    : Array.isArray(value)
+      ? value
+      : [];
+
+const normalizeBackendCareer = (career) => ({
+  id: career.careerId,
+  title: career.title,
+  tagline: career.tagline,
+  description: career.description,
+  skills: normalizeList(career.skills),
+  responsibilities: normalizeList(career.responsibilities),
+  growth: career.growth,
+  salaryRange: career.salaryRange,
+  market: {
+    avgSalary: career.avgSalary,
+    demand: career.demand,
+    topLocation: career.topLocation,
+    globalOpportunities: career.globalOpportunities,
+  },
+});
 
 export const authApi = {
   signup: async ({ fullName, email, password }) => {
-    const users = readUsers();
-    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return delay({ success: false, message: "An account with this email already exists." });
+    try {
+      const data = await requestJson("/api/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({ name: fullName, email, password }),
+      });
+      const user = normalizeBackendUser(data.user);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      return { success: true, user, message: data.message };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
     }
-    const user = { id: crypto.randomUUID(), fullName, email, password };
-    users.push(user);
-    writeUsers(users);
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, fullName, email }));
-    return delay({ success: true, user: { id: user.id, fullName, email } });
   },
 
   login: async ({ email, password }) => {
-    const users = readUsers();
-    const user = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (!user) {
-      // Allow a frictionless demo login for evaluators
-      if (email.toLowerCase() === "demo@pathwise.com" && password === "demo1234") {
-        const demoUser = { id: "demo", fullName: "Demo User", email };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(demoUser));
-        return delay({ success: true, user: demoUser });
-      }
-      return delay({ success: false, message: "Invalid email or password." });
+    try {
+      const data = await requestJson("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      const user = normalizeBackendUser(data.user);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      return { success: true, user, message: data.message };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
     }
-    localStorage.setItem(
-      SESSION_KEY,
-      JSON.stringify({ id: user.id, fullName: user.fullName, email: user.email })
-    );
-    return delay({ success: true, user: { id: user.id, fullName: user.fullName, email: user.email } });
-  },
-
-  googleLogin: async () => {
-    const user = { id: "google-demo", fullName: "Google User", email: "google.user@gmail.com" };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return delay({ success: true, user });
   },
 
   forgotPassword: async (email) => {
@@ -91,7 +136,18 @@ export const authApi = {
 
   getSession: () => {
     const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    try {
+      const user = JSON.parse(raw);
+      if (!Number.isInteger(user?.id) || user.id <= 0) {
+        localStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+      return user;
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
   },
 };
 
@@ -107,8 +163,52 @@ export const profileApi = {
 };
 
 export const careerApi = {
-  getAll: async () => delay(careers),
+  getAll: async () => {
+    try {
+      const careersFromApi = await requestJson("/api/careers");
+      return careersFromApi.map(normalizeBackendCareer);
+    } catch {
+      return [];
+    }
+  },
   getById: async (id) => delay(careers.find((c) => c.id === id) || null),
+  getRecommendations: async (userId) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return { success: false, message: "A valid backend user ID is required." };
+    }
+
+    try {
+      const recommendations = await requestJson(`/api/careers/recommendations/${userId}`);
+      return { success: true, recommendations };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+    }
+  },
+  getRecommendationByCareerId: async (userId, careerId) => {
+    const response = await careerApi.getRecommendations(userId);
+    if (!response.success) return response;
+
+    const recommendation = response.recommendations.find(
+      (item) => item.careerId === careerId
+    );
+
+    if (!recommendation) {
+      return {
+        success: false,
+        message: "Personalized match data is unavailable for this career.",
+      };
+    }
+
+    return { success: true, recommendation };
+  },
+  getDetailsById: async (id) => {
+    try {
+      const career = await requestJson(`/api/careers/${id}`);
+      return { success: true, career: normalizeBackendCareer(career) };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+    }
+  },
 };
 
 export const mentorApi = {
@@ -119,5 +219,73 @@ export const mentorApi = {
 };
 
 export const assessmentApi = {
-  submit: async (answers) => delay({ success: true, answers }, 800),
+  submit: async (answers, userId) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return { success: false, message: "A valid backend user ID is required." };
+    }
+
+    if (!answers || Object.keys(answers).length !== 30) {
+      return { success: false, message: "Please answer all 30 assessment questions." };
+    }
+
+    try {
+      const data = await requestJson("/api/assessment/submit", {
+        method: "POST",
+        body: JSON.stringify({ userId, answers }),
+      });
+      return { success: true, ...data };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+    }
+  },
+};
+
+export const skillAssessmentApi = {
+  getQuestions: async (careerId) => {
+    if (!careerId) {
+      return { success: false, message: "A career is required for the skill assessment." };
+    }
+
+    try {
+      const questions = await requestJson(`/api/skill-assessment/questions/${careerId}`);
+      return { success: true, questions };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+    }
+  },
+
+  submit: async ({ userId, careerId, answers }) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return { success: false, message: "A valid backend user ID is required." };
+    }
+    if (!careerId || !Array.isArray(answers) || answers.length === 0) {
+      return { success: false, message: "Please answer all skill assessment questions." };
+    }
+
+    try {
+      const data = await requestJson("/api/skill-assessment/submit", {
+        method: "POST",
+        body: JSON.stringify({ userId, careerId, answers }),
+      });
+      return { success: true, ...data };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+    }
+  },
+
+  getSkillGap: async (userId, careerId) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return { success: false, message: "A valid backend user ID is required." };
+    }
+    if (!careerId) {
+      return { success: false, message: "A career is required for skill gap analysis." };
+    }
+
+    try {
+      const data = await requestJson(`/api/skill-gap/${userId}/${careerId}`);
+      return { success: true, ...data };
+    } catch (error) {
+      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+    }
+  },
 };

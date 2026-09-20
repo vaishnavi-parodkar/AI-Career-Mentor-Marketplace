@@ -11,26 +11,22 @@ const links = [
 
 export default function MobileNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-off-white/95 backdrop-blur lg:hidden">
-      <div className="flex items-center justify-around px-1 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-off-white lg:hidden" aria-label="Mobile navigation">
+      <div className="flex items-center justify-around px-1 py-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         {links.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors ${
+              `focus-ring flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-colors ${
                 isActive ? "text-dark-green" : "text-text-muted"
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    isActive ? "bg-light-sage" : ""
-                  }`}
-                >
-                  <Icon size={19} />
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isActive ? "bg-light-sage" : ""}`}>
+                  <Icon size={19} aria-hidden="true" />
                 </span>
                 {label}
               </>
