@@ -1,6 +1,10 @@
 package com.aicareermentor.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "careers")
@@ -60,6 +64,10 @@ public class Career {
 
     @Column(nullable = false)
     private Integer creativeScore;
+
+    @OneToMany(mappedBy = "career")
+    @JsonIgnore
+    private List<CareerSkill> careerSkills = new ArrayList<>();
 
     public Career() {
     }
@@ -134,6 +142,10 @@ public class Career {
 
     public Integer getCreativeScore() {
         return creativeScore;
+    }
+
+    public List<CareerSkill> getCareerSkills() {
+        return careerSkills;
     }
 
     public void setId(Long id) {

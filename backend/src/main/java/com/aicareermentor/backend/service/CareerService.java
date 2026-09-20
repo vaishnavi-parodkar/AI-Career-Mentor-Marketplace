@@ -1,6 +1,7 @@
 package com.aicareermentor.backend.service;
 
 import com.aicareermentor.backend.entity.Career;
+import com.aicareermentor.backend.exception.ResourceNotFoundException;
 import com.aicareermentor.backend.repository.CareerRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +27,8 @@ public class CareerService {
         }
 
         return careerRepository.findByCareerId(careerId.trim())
-                .orElseThrow(() ->
-                        new RuntimeException("Career not found: " + careerId)
-                );
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Career not found: " + careerId)
+            );
     }
 }

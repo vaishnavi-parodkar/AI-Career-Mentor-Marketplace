@@ -15,6 +15,7 @@ import AssessmentQuestion from "./pages/AssessmentQuestion";
 import AssessmentResult from "./pages/AssessmentResult";
 import CareerRecommendations from "./pages/CareerRecommendations";
 import CareerDetail from "./pages/CareerDetail";
+import SkillAssessment from "./pages/SkillAssessment";
 import CompareCareers from "./pages/CompareCareers";
 import MentorMarketplace from "./pages/MentorMarketplace";
 import MentorDetail from "./pages/MentorDetail";
@@ -26,6 +27,7 @@ import ProgressDashboard from "./pages/ProgressDashboard";
 import InterviewFeedback from "./pages/InterviewFeedback";
 import MarketInsights from "./pages/MarketInsights";
 import NotFound from "./pages/NotFound";
+import Preview from "./pages/Preview";
 
 function App() {
   return (
@@ -39,6 +41,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/preview" element={<Preview />} />
 
             {/* Protected */}
             <Route path="/profile" element={<ProtectedRoute><CareerProfile /></ProtectedRoute>} />
@@ -48,6 +51,7 @@ function App() {
             <Route path="/assessment/result" element={<ProtectedRoute><AssessmentResult /></ProtectedRoute>} />
             <Route path="/careers" element={<ProtectedRoute><CareerRecommendations /></ProtectedRoute>} />
             <Route path="/careers/:career" element={<ProtectedRoute><CareerDetail /></ProtectedRoute>} />
+            <Route path="/skill-assessment/:careerId" element={<ProtectedRoute><SkillAssessment /></ProtectedRoute>} />
             <Route path="/compare" element={<ProtectedRoute><CompareCareers /></ProtectedRoute>} />
             <Route path="/mentors" element={<ProtectedRoute><MentorMarketplace /></ProtectedRoute>} />
             <Route path="/mentors/:mentor" element={<ProtectedRoute><MentorDetail /></ProtectedRoute>} />

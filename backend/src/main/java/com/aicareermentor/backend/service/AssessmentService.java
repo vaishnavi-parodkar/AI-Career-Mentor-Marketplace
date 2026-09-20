@@ -4,8 +4,10 @@ import com.aicareermentor.backend.dto.AssessmentRequest;
 import com.aicareermentor.backend.dto.AssessmentResponse;
 import com.aicareermentor.backend.entity.Assessment;
 import com.aicareermentor.backend.entity.AssessmentAnswer;
+import com.aicareermentor.backend.exception.ResourceNotFoundException;
 import com.aicareermentor.backend.repository.AssessmentAnswerRepository;
 import com.aicareermentor.backend.repository.AssessmentRepository;
+import com.aicareermentor.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +21,16 @@ public class AssessmentService {
 
     private final AssessmentRepository assessmentRepository;
     private final AssessmentAnswerRepository assessmentAnswerRepository;
+        private final UserRepository userRepository;
 
     public AssessmentService(
             AssessmentRepository assessmentRepository,
-            AssessmentAnswerRepository assessmentAnswerRepository) {
+                        AssessmentAnswerRepository assessmentAnswerRepository,
+                        UserRepository userRepository) {
 
         this.assessmentRepository = assessmentRepository;
         this.assessmentAnswerRepository = assessmentAnswerRepository;
+                this.userRepository = userRepository;
     }
 
     @Transactional
@@ -37,6 +42,10 @@ public class AssessmentService {
 
         if (request.getUserId() == null || request.getUserId() <= 0) {
             throw new IllegalArgumentException("Valid user ID is required");
+        }
+
+        if (!userRepository.existsById(request.getUserId())) {
+            throw new ResourceNotFoundException("User not found: " + request.getUserId());
         }
 
         // -----------------------------

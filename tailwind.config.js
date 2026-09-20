@@ -12,7 +12,7 @@ export default {
         "off-white": "#FFFDF8",
         coral: "#E9877B",
         "text-dark": "#20312B",
-        "text-muted": "#777C76",
+        "text-muted": "#5B655F",
         border: "#E5DFCF",
       },
       fontFamily: {
@@ -20,8 +20,8 @@ export default {
         body: ["'DM Sans'", "sans-serif"],
       },
       boxShadow: {
-        card: "0 2px 10px rgba(6, 76, 59, 0.06)",
-        soft: "0 4px 20px rgba(6, 76, 59, 0.08)",
+        card: "0 1px 4px rgba(6, 76, 59, 0.04)",
+        soft: "0 10px 28px rgba(6, 76, 59, 0.10)",
       },
       borderRadius: {
         xl2: "1.25rem",
