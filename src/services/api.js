@@ -288,4 +288,56 @@ export const skillAssessmentApi = {
       return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
     }
   },
+  analyzeSkillGap: async ({
+                            userId,
+                            careerId,
+                            skills,
+                            resumeContext,
+                          }) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
+    }
+
+    if (!careerId) {
+      return {
+        success: false,
+        message: "A career is required for skill gap analysis.",
+      };
+    }
+
+    if (!Array.isArray(skills) || skills.length === 0) {
+      return {
+        success: false,
+        message: "At least one skill is required.",
+      };
+    }
+
+    try {
+      const data = await requestJson("/api/skill-gap/analyze", {
+        method: "POST",
+        body: JSON.stringify({
+          userId,
+          careerId,
+          skills: skills.map((skill) => ({
+            name: skill.name,
+            value: Number(skill.value),
+          })),
+          resumeContext: resumeContext?.trim() || null,
+        }),
+      });
+
+      return {
+        success: true,
+        analysis: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
+  },
 };
