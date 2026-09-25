@@ -6,7 +6,21 @@ const AssessmentContext = createContext(null);
 export const AssessmentProvider = ({ children }) => {
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
-  const [selectedCareerId, setSelectedCareerId] = useState(null);
+  
+  const [selectedCareerId, setSelectedCareerIdState] = useState(
+    () => localStorage.getItem("selectedCareerId") || null
+  );
+
+  const setSelectedCareerId = useCallback((careerId) => {
+    setSelectedCareerIdState(careerId);
+
+    if (careerId) {
+      localStorage.setItem("selectedCareerId", careerId);
+    } else {
+      localStorage.removeItem("selectedCareerId");
+    }
+  }, []);
+
   const [compareIds, setCompareIds] = useState([]);
 
   const answerQuestion = useCallback((questionId, value) => {
