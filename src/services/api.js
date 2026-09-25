@@ -341,3 +341,102 @@ export const skillAssessmentApi = {
     }
   },
 };
+
+export const roadmapApi = {
+  generate: async ({
+    userId,
+    careerId,
+    skills,
+    resumeContext,
+  }) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
+    }
+
+    if (!careerId) {
+      return {
+        success: false,
+        message: "A career is required to generate a roadmap.",
+      };
+    }
+
+    if (!Array.isArray(skills) || skills.length === 0) {
+      return {
+        success: false,
+        message: "At least one skill is required.",
+      };
+    }
+
+    try {
+      const data = await requestJson("/api/roadmaps/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          userId,
+          careerId,
+          skills: skills.map((skill) => ({
+            name: skill.name,
+            value: Number(skill.value),
+          })),
+          resumeContext: resumeContext?.trim() || null,
+        }),
+      });
+
+      return {
+        success: true,
+        roadmap: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
+  },
+
+  getByUser: async (userId) => {
+    if (!userId || !Number.isInteger(userId) || userId <= 0) {
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
+    }
+
+    try {
+      const data = await requestJson(`/api/roadmaps/user/${userId}`);
+
+      return {
+        success: true,
+        roadmaps: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
+  },
+
+  completeStep: async (stepId, completed) => {
+    try {
+      const data = await requestJson(
+        `/api/roadmaps/steps/${stepId}/completion?completed=${completed}`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      return {
+        success: true,
+        step: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
+  },
+};

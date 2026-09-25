@@ -2,6 +2,7 @@ package com.aicareermentor.backend.service;
 
 import com.aicareermentor.backend.dto.SkillGapAnalysisResponse;
 import com.aicareermentor.backend.dto.SkillGapAnalyzeRequest;
+import com.aicareermentor.backend.dto.RoadmapGenerationResponse;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.core.JacksonException;
@@ -434,4 +435,284 @@ public class GroqSkillGapService {
                 jsonSchema
         );
     }
+
+    public RoadmapGenerationResponse generateRoadmap(
+        String careerName,
+        SkillGapAnalysisResponse analysis,
+        String resumeContext) {
+
+    if (groqApiKey == null || groqApiKey.isBlank()) {
+        throw new IllegalStateException(
+                "GROQ_API_KEY is not configured."
+        );
+    }
+
+    String context =
+            resumeContext == null || resumeContext.isBlank()
+                    ? "No additional resume or profile information was provided."
+                    : resumeContext;
+
+    String systemPrompt = """
+            You are an AI Career Mentor creating a highly personalized
+            career roadmap.
+
+            Build the roadmap ONLY from the user's actual skill-gap analysis,
+            selected career, and available profile context.
+
+            IMPORTANT RULES:
+
+            1. The roadmap must be personalized to this specific user.
+            2. Prioritize the user's largest and most important skill gaps.
+            3. Order the steps logically from foundational improvement
+               toward practical application.
+            4. Do not create generic steps that are unrelated to the
+               user's skill gaps.
+            5. Include practical learning and practice activities.
+            6. Include a project step when it is useful for applying
+               the user's identified skills.
+            7. The number of steps must depend on the user's needs.
+            8. Do not force a fixed number of steps.
+            9. Do not invent user experience, achievements, certifications,
+               or completed projects.
+            10. Keep the roadmap realistic for a student or early-career
+                learner.
+            11. Return only valid structured JSON.
+            """;
+
+    String userPrompt = """
+            Create a personalized career roadmap.
+
+            TARGET CAREER:
+            %s
+
+            SKILL GAP ANALYSIS:
+            %s
+
+            RESUME / PROFILE CONTEXT:
+            %s
+
+            For every roadmap step provide:
+
+            - title
+            - description
+            - type
+            - skillName
+            - recommendations
+
+            The type should describe the purpose of the step, such as:
+            SKILL_IMPROVEMENT
+            PRACTICE
+            PROJECT
+            PORTFOLIO
+
+            The roadmap should move logically from the user's
+            highest-priority gaps toward practical career readiness.
+
+            Recommendations should contain concrete actions the user
+            can actually perform.
+            """.formatted(
+            careerName,
+            analysis,
+            context
+    );
+
+    Map<String, Object> requestBody = new HashMap<>();
+
+    requestBody.put("model", groqModel);
+
+    requestBody.put(
+            "messages",
+            List.of(
+                    Map.of(
+                            "role",
+                            "system",
+                            "content",
+                            systemPrompt
+                    ),
+                    Map.of(
+                            "role",
+                            "user",
+                            "content",
+                            userPrompt
+                    )
+            )
+    );
+
+    requestBody.put("temperature", 0.3);
+
+    requestBody.put(
+            "max_completion_tokens",
+            3000
+    );
+
+    requestBody.put(
+            "response_format",
+            buildRoadmapResponseFormat()
+    );
+
+    try {
+
+        JsonNode response = restClient
+                .post()
+                .uri(groqApiUrl)
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer " + groqApiKey
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .retrieve()
+                .body(JsonNode.class);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "Groq returned an empty roadmap response."
+            );
+        }
+
+        JsonNode contentNode = response
+                .path("choices")
+                .path(0)
+                .path("message")
+                .path("content");
+
+        if (contentNode.isMissingNode()
+                || contentNode.isNull()) {
+
+            throw new IllegalStateException(
+                    "Groq response did not contain roadmap content."
+            );
+        }
+
+        String content = contentNode.asText();
+
+        if (content == null || content.isBlank()) {
+            throw new IllegalStateException(
+                    "Groq returned empty roadmap content."
+            );
+        }
+
+        return objectMapper.readValue(
+                content,
+                RoadmapGenerationResponse.class
+        );
+
+    } catch (RestClientResponseException e) {
+
+        throw new IllegalStateException(
+                "Groq roadmap request failed. HTTP status: "
+                        + e.getStatusCode()
+                        + ". Response: "
+                        + e.getResponseBodyAsString(),
+                e
+        );
+
+    } catch (JacksonException e) {
+
+        throw new IllegalStateException(
+                "Could not parse the structured roadmap returned by Groq.",
+                e
+        );
+        }
+        }
+
+    private Map<String, Object> buildRoadmapResponseFormat() {
+
+    Map<String, Object> stepProperties = new HashMap<>();
+
+    stepProperties.put(
+            "title",
+            Map.of("type", "string")
+    );
+
+    stepProperties.put(
+            "description",
+            Map.of("type", "string")
+    );
+
+    stepProperties.put(
+            "type",
+            Map.of("type", "string")
+    );
+
+    stepProperties.put(
+            "skillName",
+            Map.of("type", "string")
+    );
+
+    stepProperties.put(
+            "recommendations",
+            Map.of("type", "string")
+    );
+
+    Map<String, Object> stepSchema = new HashMap<>();
+
+    stepSchema.put("type", "object");
+    stepSchema.put("properties", stepProperties);
+
+    stepSchema.put(
+            "required",
+            List.of(
+                    "title",
+                    "description",
+                    "type",
+                    "skillName",
+                    "recommendations"
+            )
+    );
+
+    stepSchema.put("additionalProperties", false);
+
+    Map<String, Object> rootProperties = new HashMap<>();
+
+    rootProperties.put(
+            "title",
+            Map.of("type", "string")
+    );
+
+    rootProperties.put(
+            "summary",
+            Map.of("type", "string")
+    );
+
+    rootProperties.put(
+            "steps",
+            Map.of(
+                    "type",
+                    "array",
+                    "items",
+                    stepSchema
+            )
+    );
+
+    Map<String, Object> schema = new HashMap<>();
+
+    schema.put("type", "object");
+    schema.put("properties", rootProperties);
+
+    schema.put(
+            "required",
+            List.of(
+                    "title",
+                    "summary",
+                    "steps"
+            )
+    );
+
+    schema.put("additionalProperties", false);
+
+    return Map.of(
+            "type",
+            "json_schema",
+            "json_schema",
+            Map.of(
+                    "name",
+                    "career_roadmap",
+                    "strict",
+                    true,
+                    "schema",
+                    schema
+            )
+    );
+}
 }

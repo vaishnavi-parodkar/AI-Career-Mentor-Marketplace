@@ -14,7 +14,7 @@ import Loader from "../components/Loader";
 
 import { useAssessment } from "../context/AssessmentContext";
 import { useAuth } from "../context/AuthContext";
-import { careerApi, skillAssessmentApi } from "../services/api";
+import { careerApi, skillAssessmentApi, roadmapApi } from "../services/api";
 
 /*
  * Default skills shown in the UI.
@@ -66,6 +66,7 @@ export default function SkillGap() {
 
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [generatingRoadmap, setGeneratingRoadmap] = useState(false);
   const [error, setError] = useState("");
 
   const hasBackendUser =
@@ -215,6 +216,42 @@ export default function SkillGap() {
       );
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const handleGenerateRoadmap = async () => {
+    if (!hasBackendUser) {
+      setError("A valid backend user ID is required to generate a roadmap.");
+      return;
+    }
+
+    if (!selectedCareerId) {
+      setError("A career is required to generate a roadmap.");
+      return;
+    }
+
+    setGeneratingRoadmap(true);
+    setError("");
+
+    try {
+      const response = await roadmapApi.generate({
+        userId: user.id,
+        careerId: selectedCareerId,
+        skills,
+        resumeContext,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+
+      navigate("/roadmap");
+    } catch (requestError) {
+      setError(
+        requestError.message || "Unable to generate your career roadmap."
+      );
+    } finally {
+      setGeneratingRoadmap(false);
     }
   };
   /*
@@ -745,8 +782,40 @@ export default function SkillGap() {
                         </Card>
                     )}
 
+                    {/* Generate Career Roadmap */}
+                      <div className="flex justify-center pt-2 pb-4">
+                        <button
+                          type="button"
+                          onClick={handleGenerateRoadmap}
+                          disabled={generatingRoadmap}
+                          className="
+                            inline-flex
+                            h-12
+                            items-center
+                            justify-center
+                            gap-2
+                            rounded-full
+                            bg-dark-green
+                            px-7
+                            text-sm
+                            font-semibold
+                            text-white
+                            shadow-sm
+                            transition
+                            hover:-translate-y-[1px]
+                            hover:shadow-md
+                            disabled:cursor-not-allowed
+                            disabled:opacity-60
+                          "
+                        >
+                          {generatingRoadmap
+                            ? "Generating Roadmap..."
+                            : "Generate My Career Roadmap"}
+                          </button>
+                        </div>
+
               </div>
-          )}
+        )}
 
         </main>
 
