@@ -29,7 +29,7 @@ const BACKEND_BASE_URL = "http://localhost:8080";
 const SERVER_ERROR_MESSAGE = "Unable to connect to the server. Please try again.";
 
 const delay = (data, ms = LATENCY) =>
-  new Promise((resolve) => setTimeout(() => resolve(data), ms));
+    new Promise((resolve) => setTimeout(() => resolve(data), ms));
 
 const SESSION_KEY = "pathwise_session";
 const PROFILE_KEY = "pathwise_profile";
@@ -69,11 +69,11 @@ const normalizeBackendUser = (user) => ({
 });
 
 const normalizeList = (value) =>
-  typeof value === "string"
-    ? value.split(",").map((item) => item.trim()).filter(Boolean)
-    : Array.isArray(value)
-      ? value
-      : [];
+    typeof value === "string"
+        ? value.split(",").map((item) => item.trim()).filter(Boolean)
+        : Array.isArray(value)
+            ? value
+            : [];
 
 const normalizeBackendCareer = (career) => ({
   id: career.careerId,
@@ -89,6 +89,13 @@ const normalizeBackendCareer = (career) => ({
     demand: career.demand,
     topLocation: career.topLocation,
     globalOpportunities: career.globalOpportunities,
+  },
+  scores: {
+    analytical: career.analyticalScore,
+    technical: career.technicalScore,
+    communication: career.communicationScore,
+    leadership: career.leadershipScore,
+    creative: career.creativeScore,
   },
 });
 
@@ -189,7 +196,7 @@ export const careerApi = {
     if (!response.success) return response;
 
     const recommendation = response.recommendations.find(
-      (item) => item.careerId === careerId
+        (item) => item.careerId === careerId
     );
 
     if (!recommendation) {
@@ -215,7 +222,7 @@ export const mentorApi = {
   getAll: async () => delay(mentors),
   getById: async (id) => delay(mentors.find((m) => m.id === id) || null),
   sendMessage: async (mentor, message) =>
-    delay({ reply: getMockMentorReply(mentor, message) }, 700),
+      delay({ reply: getMockMentorReply(mentor, message) }, 700),
 };
 
 export const assessmentApi = {
@@ -344,11 +351,11 @@ export const skillAssessmentApi = {
 
 export const roadmapApi = {
   generate: async ({
-    userId,
-    careerId,
-    skills,
-    resumeContext,
-  }) => {
+                     userId,
+                     careerId,
+                     skills,
+                     resumeContext,
+                   }) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
       return {
         success: false,
@@ -422,10 +429,10 @@ export const roadmapApi = {
   completeStep: async (stepId, completed) => {
     try {
       const data = await requestJson(
-        `/api/roadmaps/steps/${stepId}/completion?completed=${completed}`,
-        {
-          method: "PATCH",
-        }
+          `/api/roadmaps/steps/${stepId}/completion?completed=${completed}`,
+          {
+            method: "PATCH",
+          }
       );
 
       return {
