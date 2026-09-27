@@ -128,14 +128,47 @@ export const authApi = {
     }
   },
 
-  forgotPassword: async (email) => {
-    return delay({ success: true, message: `Reset link sent to ${email} (mocked).` });
-  },
+forgotPassword: async (email) => {
+  try {
+    const data = await requestJson("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
 
-  resetPassword: async (_newPassword) => {
-    return delay({ success: true, message: "Password reset successful." });
-  },
+    return {
+      success: true,
+      token: data.token,
+      message: data.message,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || SERVER_ERROR_MESSAGE,
+    };
+  }
+},
 
+resetPassword: async (token, newPassword) => {
+  try {
+    const data = await requestJson("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        token,
+        newPassword,
+      }),
+    });
+
+    return {
+      success: true,
+      message: data.message,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || SERVER_ERROR_MESSAGE,
+    };
+  }
+},
   logout: async () => {
     localStorage.removeItem(SESSION_KEY);
     return delay({ success: true });

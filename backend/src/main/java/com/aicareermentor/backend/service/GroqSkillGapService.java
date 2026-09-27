@@ -61,6 +61,8 @@ public class GroqSkillGapService {
                     "No additional resume or profile information was provided.";
         }
 
+        int requiredSkillCount = requiredSkills.size();
+
         String systemPrompt = """
                 You are an AI Career Mentor performing a personalized
                 Skill Gap Analysis.
@@ -85,6 +87,8 @@ public class GroqSkillGapService {
                 10. Use the resume/profile context only as supporting
                     information.
                 11. Return one skill analysis for every required career skill.
+                    The "skills" array MUST contain exactly one entry per
+                    required skill listed below - never fewer, never more.
                 12. Return only valid structured JSON.
                 """;
 
@@ -94,7 +98,9 @@ public class GroqSkillGapService {
                 TARGET CAREER:
                 %s
 
-                REQUIRED CAREER SKILLS:
+                REQUIRED CAREER SKILLS (%d total - the "skills" array in your
+                response MUST contain exactly %d entries, one for each of
+                these, in this order):
                 %s
 
                 USER'S CURRENT SKILL LEVELS:
@@ -131,6 +137,8 @@ public class GroqSkillGapService {
                 - nextSteps
                 """.formatted(
                 careerName,
+                requiredSkillCount,
+                requiredSkillCount,
                 requiredSkillsText,
                 userSkillsText,
                 resumeContext
@@ -162,13 +170,55 @@ public class GroqSkillGapService {
 
         requestBody.put(
                 "max_completion_tokens",
-                3000
+                4000
         );
 
         requestBody.put(
                 "response_format",
-                buildResponseFormat()
+                buildResponseFormat(requiredSkillCount)
         );
+
+        IllegalStateException lastFailure = null;
+        int maxAttempts = 3;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return callGroqForAnalysis(requestBody, requiredSkillCount);
+            } catch (IllegalStateException e) {
+                lastFailure = e;
+
+                boolean schemaMismatch = e.getMessage() != null
+                        && e.getMessage().contains("json_validate_failed");
+
+                boolean rateLimited = e.getMessage() != null
+                        && (e.getMessage().contains("rate_limit_exceeded")
+                                || e.getMessage().contains("429"));
+
+                boolean retryable = schemaMismatch || rateLimited;
+
+                if (!retryable || attempt == maxAttempts) {
+                    throw e;
+                }
+
+                if (rateLimited) {
+                    // Groq's TPM window is per-minute - a short pause lets
+                    // it reset instead of failing immediately like a reload would.
+                    try {
+                        Thread.sleep(12000);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        throw lastFailure;
+    }
+
+    private SkillGapAnalysisResponse callGroqForAnalysis(
+            Map<String, Object> requestBody,
+            int requiredSkillCount) {
 
         try {
 
@@ -212,10 +262,26 @@ public class GroqSkillGapService {
                 );
             }
 
-            return objectMapper.readValue(
+            SkillGapAnalysisResponse analysis = objectMapper.readValue(
                     content,
                     SkillGapAnalysisResponse.class
             );
+
+            if (analysis.skills() == null
+                    || analysis.skills().size() != requiredSkillCount) {
+
+                throw new IllegalStateException(
+                        "Groq returned "
+                                + (analysis.skills() == null
+                                        ? 0
+                                        : analysis.skills().size())
+                                + " skill entries but "
+                                + requiredSkillCount
+                                + " were required. Please try again."
+                );
+            }
+
+            return analysis;
 
         } catch (RestClientResponseException e) {
 
@@ -258,7 +324,7 @@ public class GroqSkillGapService {
         return String.join(", ", result);
     }
 
-    private Map<String, Object> buildResponseFormat() {
+    private Map<String, Object> buildResponseFormat(int requiredSkillCount) {
 
         Map<String, Object> skillProperties =
                 new HashMap<>();
@@ -361,13 +427,20 @@ public class GroqSkillGapService {
                 Map.of("type", "integer")
         );
 
+        // NOTE: minItems / maxItems pin the array length to the exact
+        // number of required career skills, so the model can no longer
+        // pass schema validation while returning a partial list.
         rootProperties.put(
                 "skills",
                 Map.of(
                         "type",
                         "array",
                         "items",
-                        skillSchema
+                        skillSchema,
+                        "minItems",
+                        requiredSkillCount,
+                        "maxItems",
+                        requiredSkillCount
                 )
         );
 
