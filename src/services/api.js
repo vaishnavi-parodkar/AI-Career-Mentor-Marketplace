@@ -193,12 +193,72 @@ resetPassword: async (token, newPassword) => {
 
 export const profileApi = {
   saveProfile: async (profile) => {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-    return delay({ success: true, profile });
+    const user = authApi.getSession();
+
+    if (!user?.id) {
+      return {
+        success: false,
+        message: "Please log in again before saving your profile.",
+      };
+    }
+
+    try {
+      const data = await requestJson("/api/profile", {
+        method: "POST",
+        body: JSON.stringify({
+          userId: user.id,
+          qualification: profile.qualification,
+          field: profile.field,
+          gradYear: Number(profile.gradYear),
+          interests: profile.interests.join(", "),
+          goal: profile.goal,
+        }),
+      });
+
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+
+      return {
+        success: true,
+        profile: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
   },
-  getProfile: () => {
-    const raw = localStorage.getItem(PROFILE_KEY);
-    return raw ? JSON.parse(raw) : null;
+
+  getProfile: async () => {
+    const user = authApi.getSession();
+
+    if (!user?.id) {
+      return { success: false, profile: null, message: "Please log in again to view your profile." };
+    }
+
+    try {
+      const data = await requestJson(`/api/profile/${user.id}`);
+      const profile = {
+        qualification: data.qualification || "",
+        field: data.field || "",
+        gradYear: data.gradYear == null ? "" : String(data.gradYear),
+        interests: normalizeList(data.interests),
+        goal: data.goal || "",
+      };
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      return { success: true, profile };
+    } catch (error) {
+      // Keep a previously saved local copy available if the API is temporarily unreachable.
+      const raw = localStorage.getItem(PROFILE_KEY);
+      if (raw) {
+        try {
+          return { success: true, profile: JSON.parse(raw), stale: true };
+        } catch {
+          localStorage.removeItem(PROFILE_KEY);
+        }
+      }
+      return { success: false, profile: null, message: error.message || SERVER_ERROR_MESSAGE };
+    }
   },
 };
 
