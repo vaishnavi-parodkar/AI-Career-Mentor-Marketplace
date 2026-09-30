@@ -4,6 +4,7 @@ import com.aicareermentor.backend.dto.ProfileRequest;
 import com.aicareermentor.backend.dto.ProfileResponse;
 import com.aicareermentor.backend.entity.Profile;
 import com.aicareermentor.backend.repository.ProfileRepository;
+import com.aicareermentor.backend.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -51,7 +52,7 @@ public class ProfileService {
         Profile profile = profileRepository
                 .findByUserId(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("Profile not found for user ID: " + userId)
+                        new ResourceNotFoundException("Profile not found for user ID: " + userId)
                 );
 
         return convertToResponse(profile);

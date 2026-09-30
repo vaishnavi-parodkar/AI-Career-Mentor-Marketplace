@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { KeyRound } from "lucide-react";
 import Input from "../components/Input";
 import Button from "../components/Button";
@@ -9,6 +9,9 @@ import { authApi } from "../services/api";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const token = location.state?.token;
   const [form, setForm] = useState({ password: "", confirm: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -18,21 +21,46 @@ export default function ResetPassword() {
 
   const validate = () => {
     const errs = {};
-    if (form.password.length < 6) errs.password = "Password must be at least 6 characters.";
+    if (form.password.length < 8) errs.password = "Password must be at least 8 characters.";
     if (form.confirm !== form.password) errs.confirm = "Passwords do not match.";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
-    await authApi.resetPassword(form.password);
-    setLoading(false);
-    setDone(true);
-    setTimeout(() => navigate("/login"), 1200);
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validate()) return;
+
+  if (!token) {
+    setErrors({
+      password: "Invalid or missing password reset session."
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  const result = await authApi.resetPassword(
+    token,
+    form.password
+  );
+
+  setLoading(false);
+
+  if (!result.success) {
+    setErrors({
+      password: result.message || "Password reset failed."
+    });
+    return;
+  }
+
+  setDone(true);
+
+  setTimeout(() => {
+    navigate("/login");
+  }, 1200);
+};
 
   return (
     <div className="min-h-screen bg-cream">
@@ -56,6 +84,11 @@ export default function ResetPassword() {
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
+            {errors.submit && (
+  <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+    {errors.submit}
+  </p>
+)}
               <Input
                 label="New Password"
                 type="password"

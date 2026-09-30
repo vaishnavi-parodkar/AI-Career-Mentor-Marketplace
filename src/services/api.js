@@ -128,47 +128,48 @@ export const authApi = {
     }
   },
 
-forgotPassword: async (email) => {
-  try {
-    const data = await requestJson("/api/auth/forgot-password", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    });
+  forgotPassword: async (email) => {
+    try {
+      const data = await requestJson("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
 
-    return {
-      success: true,
-      token: data.token,
-      message: data.message,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error.message || SERVER_ERROR_MESSAGE,
-    };
-  }
-},
+      return {
+        success: true,
+        token: data.token,
+        message: data.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
+  },
 
-resetPassword: async (token, newPassword) => {
-  try {
-    const data = await requestJson("/api/auth/reset-password", {
-      method: "POST",
-      body: JSON.stringify({
-        token,
-        newPassword,
-      }),
-    });
+  resetPassword: async (token, newPassword) => {
+    try {
+      const data = await requestJson("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+          token,
+          newPassword,
+        }),
+      });
 
-    return {
-      success: true,
-      message: data.message,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error.message || SERVER_ERROR_MESSAGE,
-    };
-  }
-},
+      return {
+        success: true,
+        message: data.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
+    }
+  },
+
   logout: async () => {
     localStorage.removeItem(SESSION_KEY);
     return delay({ success: true });
@@ -177,12 +178,15 @@ resetPassword: async (token, newPassword) => {
   getSession: () => {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
+
     try {
       const user = JSON.parse(raw);
+
       if (!Number.isInteger(user?.id) || user.id <= 0) {
         localStorage.removeItem(SESSION_KEY);
         return null;
       }
+
       return user;
     } catch {
       localStorage.removeItem(SESSION_KEY);
@@ -233,11 +237,16 @@ export const profileApi = {
     const user = authApi.getSession();
 
     if (!user?.id) {
-      return { success: false, profile: null, message: "Please log in again to view your profile." };
+      return {
+        success: false,
+        profile: null,
+        message: "Please log in again to view your profile.",
+      };
     }
 
     try {
       const data = await requestJson(`/api/profile/${user.id}`);
+
       const profile = {
         qualification: data.qualification || "",
         field: data.field || "",
@@ -245,19 +254,34 @@ export const profileApi = {
         interests: normalizeList(data.interests),
         goal: data.goal || "",
       };
+
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-      return { success: true, profile };
+
+      return {
+        success: true,
+        profile,
+      };
     } catch (error) {
       // Keep a previously saved local copy available if the API is temporarily unreachable.
       const raw = localStorage.getItem(PROFILE_KEY);
+
       if (raw) {
         try {
-          return { success: true, profile: JSON.parse(raw), stale: true };
+          return {
+            success: true,
+            profile: JSON.parse(raw),
+            stale: true,
+          };
         } catch {
           localStorage.removeItem(PROFILE_KEY);
         }
       }
-      return { success: false, profile: null, message: error.message || SERVER_ERROR_MESSAGE };
+
+      return {
+        success: false,
+        profile: null,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
 };
@@ -271,25 +295,42 @@ export const careerApi = {
       return [];
     }
   },
-  getById: async (id) => delay(careers.find((c) => c.id === id) || null),
+
+  getById: async (id) =>
+    delay(careers.find((c) => c.id === id) || null),
+
   getRecommendations: async (userId) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
-      return { success: false, message: "A valid backend user ID is required." };
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
     }
 
     try {
-      const recommendations = await requestJson(`/api/careers/recommendations/${userId}`);
-      return { success: true, recommendations };
+      const recommendations = await requestJson(
+        `/api/careers/recommendations/${userId}`
+      );
+
+      return {
+        success: true,
+        recommendations,
+      };
     } catch (error) {
-      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
+
   getRecommendationByCareerId: async (userId, careerId) => {
     const response = await careerApi.getRecommendations(userId);
+
     if (!response.success) return response;
 
     const recommendation = response.recommendations.find(
-        (item) => item.careerId === careerId
+      (item) => item.careerId === careerId
     );
 
     if (!recommendation) {
@@ -299,43 +340,76 @@ export const careerApi = {
       };
     }
 
-    return { success: true, recommendation };
+    return {
+      success: true,
+      recommendation,
+    };
   },
+
   getDetailsById: async (id) => {
     try {
       const career = await requestJson(`/api/careers/${id}`);
-      return { success: true, career: normalizeBackendCareer(career) };
+
+      return {
+        success: true,
+        career: normalizeBackendCareer(career),
+      };
     } catch (error) {
-      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
 };
 
 export const mentorApi = {
   getAll: async () => delay(mentors),
-  getById: async (id) => delay(mentors.find((m) => m.id === id) || null),
+
+  getById: async (id) =>
+    delay(mentors.find((m) => m.id === id) || null),
+
   sendMessage: async (mentor, message) =>
-      delay({ reply: getMockMentorReply(mentor, message) }, 700),
+    delay(
+      { reply: getMockMentorReply(mentor, message) },
+      700
+    ),
 };
 
 export const assessmentApi = {
   submit: async (answers, userId) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
-      return { success: false, message: "A valid backend user ID is required." };
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
     }
 
     if (!answers || Object.keys(answers).length !== 30) {
-      return { success: false, message: "Please answer all 30 assessment questions." };
+      return {
+        success: false,
+        message: "Please answer all 30 assessment questions.",
+      };
     }
 
     try {
       const data = await requestJson("/api/assessment/submit", {
         method: "POST",
-        body: JSON.stringify({ userId, answers }),
+        body: JSON.stringify({
+          userId,
+          answers,
+        }),
       });
-      return { success: true, ...data };
+
+      return {
+        success: true,
+        ...data,
+      };
     } catch (error) {
-      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
 };
@@ -343,57 +417,104 @@ export const assessmentApi = {
 export const skillAssessmentApi = {
   getQuestions: async (careerId) => {
     if (!careerId) {
-      return { success: false, message: "A career is required for the skill assessment." };
+      return {
+        success: false,
+        message: "A career is required for the skill assessment.",
+      };
     }
 
     try {
-      const questions = await requestJson(`/api/skill-assessment/questions/${careerId}`);
-      return { success: true, questions };
+      const questions = await requestJson(
+        `/api/skill-assessment/questions/${careerId}`
+      );
+
+      return {
+        success: true,
+        questions,
+      };
     } catch (error) {
-      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
 
   submit: async ({ userId, careerId, answers }) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
-      return { success: false, message: "A valid backend user ID is required." };
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
     }
+
     if (!careerId || !Array.isArray(answers) || answers.length === 0) {
-      return { success: false, message: "Please answer all skill assessment questions." };
+      return {
+        success: false,
+        message: "Please answer all skill assessment questions.",
+      };
     }
 
     try {
       const data = await requestJson("/api/skill-assessment/submit", {
         method: "POST",
-        body: JSON.stringify({ userId, careerId, answers }),
+        body: JSON.stringify({
+          userId,
+          careerId,
+          answers,
+        }),
       });
-      return { success: true, ...data };
+
+      return {
+        success: true,
+        ...data,
+      };
     } catch (error) {
-      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
 
   getSkillGap: async (userId, careerId) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
-      return { success: false, message: "A valid backend user ID is required." };
+      return {
+        success: false,
+        message: "A valid backend user ID is required.",
+      };
     }
+
     if (!careerId) {
-      return { success: false, message: "A career is required for skill gap analysis." };
+      return {
+        success: false,
+        message: "A career is required for skill gap analysis.",
+      };
     }
 
     try {
-      const data = await requestJson(`/api/skill-gap/${userId}/${careerId}`);
-      return { success: true, ...data };
+      const data = await requestJson(
+        `/api/skill-gap/${userId}/${careerId}`
+      );
+
+      return {
+        success: true,
+        ...data,
+      };
     } catch (error) {
-      return { success: false, message: error.message || SERVER_ERROR_MESSAGE };
+      return {
+        success: false,
+        message: error.message || SERVER_ERROR_MESSAGE,
+      };
     }
   },
+
   analyzeSkillGap: async ({
-                            userId,
-                            careerId,
-                            skills,
-                            resumeContext,
-                          }) => {
+    userId,
+    careerId,
+    skills,
+    resumeContext,
+  }) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
       return {
         success: false,
@@ -444,11 +565,11 @@ export const skillAssessmentApi = {
 
 export const roadmapApi = {
   generate: async ({
-                     userId,
-                     careerId,
-                     skills,
-                     resumeContext,
-                   }) => {
+    userId,
+    careerId,
+    skills,
+    resumeContext,
+  }) => {
     if (!userId || !Number.isInteger(userId) || userId <= 0) {
       return {
         success: false,
@@ -522,10 +643,10 @@ export const roadmapApi = {
   completeStep: async (stepId, completed) => {
     try {
       const data = await requestJson(
-          `/api/roadmaps/steps/${stepId}/completion?completed=${completed}`,
-          {
-            method: "PATCH",
-          }
+        `/api/roadmaps/steps/${stepId}/completion?completed=${completed}`,
+        {
+          method: "PATCH",
+        }
       );
 
       return {
