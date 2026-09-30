@@ -248,15 +248,6 @@ export const profileApi = {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
       return { success: true, profile };
     } catch (error) {
-      // Keep a previously saved local copy available if the API is temporarily unreachable.
-      const raw = localStorage.getItem(PROFILE_KEY);
-      if (raw) {
-        try {
-          return { success: true, profile: JSON.parse(raw), stale: true };
-        } catch {
-          localStorage.removeItem(PROFILE_KEY);
-        }
-      }
       return { success: false, profile: null, message: error.message || SERVER_ERROR_MESSAGE };
     }
   },
