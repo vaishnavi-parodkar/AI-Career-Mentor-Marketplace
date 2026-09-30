@@ -90,7 +90,7 @@ export default function CareerProfile() {
       return;
     }
     if (step === 2) {
-      await saveProfile(true);
+      await saveProfile(false);
       return;
     }
     setStep((current) => current + 1);
