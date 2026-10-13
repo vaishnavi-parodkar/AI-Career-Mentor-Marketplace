@@ -1,6 +1,7 @@
 package com.aicareermentor.backend.service;
 
 import com.aicareermentor.backend.dto.RoadmapGenerationResponse;
+import com.aicareermentor.backend.dto.SkillGapAnalysisItem;
 import com.aicareermentor.backend.dto.SkillGapAnalyzeRequest;
 import com.aicareermentor.backend.dto.SkillGapAnalysisResponse;
 import com.aicareermentor.backend.entity.Career;
@@ -13,8 +14,13 @@ import com.aicareermentor.backend.repository.RoadmapStepRepository;
 import com.aicareermentor.backend.repository.SkillRepository;
 import com.aicareermentor.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class CareerRoadmapService {
@@ -26,6 +32,7 @@ public class CareerRoadmapService {
     private final GroqSkillGapService groqSkillGapService;
     private final SkillRepository skillRepository;
     private final RoadmapStepRepository roadmapStepRepository;
+    private final ObjectMapper objectMapper;
 
     public CareerRoadmapService(
         CareerRoadmapRepository careerRoadmapRepository,
@@ -34,7 +41,8 @@ public class CareerRoadmapService {
         SkillAssessmentService skillAssessmentService,
         GroqSkillGapService groqSkillGapService,
         SkillRepository skillRepository,
-        RoadmapStepRepository roadmapStepRepository) {
+        RoadmapStepRepository roadmapStepRepository,
+        ObjectMapper objectMapper) {
 
         this.careerRoadmapRepository = careerRoadmapRepository;
         this.userRepository = userRepository;
@@ -43,6 +51,7 @@ public class CareerRoadmapService {
         this.groqSkillGapService = groqSkillGapService;
         this.skillRepository = skillRepository;
         this.roadmapStepRepository = roadmapStepRepository;
+        this.objectMapper = objectMapper;
     }
 
     public CareerRoadmap createRoadmap(
@@ -112,7 +121,13 @@ public class CareerRoadmapService {
                 roadmapResponse.summary()
         );
 
+        List<SkillGapAnalysisItem> analysisSkills =
+                analysis.skills() == null ? List.of() : analysis.skills();
+
         int stepOrder = 1;
+
+        // Steps grouped by the analysis skill they work on (normalized name).
+        Map<String, List<RoadmapStep>> stepsBySkill = new LinkedHashMap<>();
 
         for (var item : roadmapResponse.steps()) {
 
@@ -138,11 +153,107 @@ public class CareerRoadmapService {
                         item.recommendations()
                 );
 
+                SkillGapAnalysisItem matched =
+                        matchAnalysisSkill(item.skillName(), analysisSkills);
+
+                if (matched != null) {
+                        step.setSkillName(matched.skillName());
+                        stepsBySkill
+                                .computeIfAbsent(
+                                        normalize(matched.skillName()),
+                                        key -> new ArrayList<>())
+                                .add(step);
+                } else if (item.skillName() != null
+                        && !item.skillName().isBlank()) {
+                        step.setSkillName(item.skillName());
+                }
+
                 roadmap.getSteps().add(step);
         }
 
+        // Split each skill's gap across the steps that work on it, so that
+        // finishing every step for a skill closes exactly that skill's gap.
+        List<Map<String, Object>> snapshotSkills = new ArrayList<>();
+
+        for (SkillGapAnalysisItem item : analysisSkills) {
+
+                int current = levelOf(item.currentLevel());
+                int required = levelOf(item.requiredLevel());
+
+                Map<String, Object> entry = new LinkedHashMap<>();
+                entry.put("skillName", item.skillName());
+                entry.put("currentLevel", current);
+                entry.put("requiredLevel", required);
+                snapshotSkills.add(entry);
+
+                List<RoadmapStep> group =
+                        stepsBySkill.get(normalize(item.skillName()));
+
+                if (group == null || group.isEmpty()) {
+                        continue;
+                }
+
+                int gap = Math.max(0, required - current);
+                int base = gap / group.size();
+                int extra = gap % group.size();
+
+                for (int i = 0; i < group.size(); i++) {
+                        group.get(i).setGapReduction(
+                                base + (i < extra ? 1 : 0));
+                }
+        }
+
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put(
+                "overallReadiness",
+                analysis.overallReadiness() == null
+                        ? 0
+                        : analysis.overallReadiness());
+        snapshot.put("skills", snapshotSkills);
+
+        roadmap.setGapSnapshot(objectMapper.writeValueAsString(snapshot));
+
         return careerRoadmapRepository.save(roadmap);
         }
+
+    private SkillGapAnalysisItem matchAnalysisSkill(
+            String name,
+            List<SkillGapAnalysisItem> items) {
+
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+
+        String wanted = normalize(name);
+
+        for (SkillGapAnalysisItem item : items) {
+            if (normalize(item.skillName()).equals(wanted)) {
+                return item;
+            }
+        }
+
+        for (SkillGapAnalysisItem item : items) {
+            String candidate = normalize(item.skillName());
+
+            if (!candidate.isEmpty()
+                    && (candidate.contains(wanted)
+                    || wanted.contains(candidate))) {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    private String normalize(String value) {
+        return value == null
+                ? ""
+                : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private int levelOf(Integer level) {
+        return level == null ? 0 : Math.max(0, Math.min(100, level));
+    }
 
     public RoadmapStep updateStepCompletion(
                 Long stepId,

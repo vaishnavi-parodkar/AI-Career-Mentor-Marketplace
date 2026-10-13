@@ -22,6 +22,7 @@ import MentorDetail from "./pages/MentorDetail";
 import MentorChat from "./pages/MentorChat";
 import SkillGap from "./pages/SkillGap";
 import Roadmap from "./pages/Roadmap";
+import DayInLife from "./pages/DayInLife";
 import MockInterview from "./pages/MockInterview";
 import ProgressDashboard from "./pages/ProgressDashboard";
 import InterviewFeedback from "./pages/InterviewFeedback";
@@ -51,6 +52,7 @@ function App() {
             <Route path="/assessment/result" element={<ProtectedRoute><AssessmentResult /></ProtectedRoute>} />
             <Route path="/careers" element={<ProtectedRoute><CareerRecommendations /></ProtectedRoute>} />
             <Route path="/careers/:career" element={<ProtectedRoute><CareerDetail /></ProtectedRoute>} />
+            <Route path="/careers/:career/day-in-life" element={<ProtectedRoute><DayInLife /></ProtectedRoute>} />
             <Route path="/skill-assessment/:careerId" element={<ProtectedRoute><SkillAssessment /></ProtectedRoute>} />
             <Route path="/compare" element={<ProtectedRoute><CompareCareers /></ProtectedRoute>} />
             <Route path="/mentors" element={<ProtectedRoute><MentorMarketplace /></ProtectedRoute>} />

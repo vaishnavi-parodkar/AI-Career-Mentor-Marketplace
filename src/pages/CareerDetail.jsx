@@ -1,3 +1,4 @@
+import { dayInLife } from "../data/dayInLife";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, CheckCircle2, DollarSign, Globe2, MapPin, RotateCcw, TrendingUp } from "lucide-react";
@@ -161,6 +162,8 @@ export default function CareerDetail() {
           </section>
 
           <section className="border-b border-border py-10"><p className="type-eyebrow">Day-to-day work</p><h2 className="mt-2 type-section-title">Responsibilities</h2><ul className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">{career.responsibilities.map((responsibility) => <li key={responsibility} className="flex items-start gap-2.5 text-base leading-7 text-text-dark"><CheckCircle2 size={17} className="mt-1.5 shrink-0 text-green" aria-hidden="true" />{responsibility}</li>)}</ul></section>
+
+          {dayInLife[career.id] && <section className="border-b border-border py-10"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="type-eyebrow">See the job in action</p><h2 className="mt-2 type-section-title">A Day in the Life</h2><p className="mt-3 max-w-prose type-supporting">Walk through a typical day as a {career.title}, from the first task of the morning to wrapping up.</p></div><Button icon={ArrowRight} iconPosition="right" onClick={() => navigate(`/careers/${career.id}/day-in-life${isBrowseMode ? "?mode=browse" : ""}`)}>Explore a typical day</Button></div></section>}
 
           <section className="border-b border-border py-10"><p className="type-eyebrow">Build a long view</p><h2 className="mt-2 type-section-title">Career Growth</h2>{career.growth && <p className="mt-3 type-supporting">{career.growth}</p>}<ol className="mt-8 space-y-0">{content.stages.map(([stage, description], index) => <li key={stage} className="relative flex gap-4 pb-8 last:pb-0"><div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-dark-green text-xs font-semibold text-off-white">{index + 1}</div>{index < content.stages.length - 1 && <div className="absolute left-4 top-8 h-[calc(100%-1rem)] w-px bg-border" />}<div className="pt-0.5"><h3 className="text-base font-bold text-dark-green">{stage}</h3><p className="mt-1 type-supporting">{description}</p></div></li>)}</ol></section>
 

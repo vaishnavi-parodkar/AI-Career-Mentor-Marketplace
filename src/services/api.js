@@ -33,6 +33,8 @@ const delay = (data, ms = LATENCY) =>
 
 const SESSION_KEY = "pathwise_session";
 const PROFILE_KEY = "pathwise_profile";
+// Cached profile is kept per user so one account never sees another's data offline.
+const profileKey = (userId) => `${PROFILE_KEY}_${userId}`;
 
 const requestJson = async (path, options) => {
   let response;
@@ -211,15 +213,21 @@ export const profileApi = {
         method: "POST",
         body: JSON.stringify({
           userId: user.id,
-          qualification: profile.qualification,
-          field: profile.field,
-          gradYear: Number(profile.gradYear),
-          interests: profile.interests.join(", "),
-          goal: profile.goal,
+          qualification: profile.qualification || "",
+          field: profile.field || "",
+          // Every field is optional so a half-finished profile can be saved and completed later.
+          gradYear: profile.gradYear ? Number(profile.gradYear) : null,
+          interests: (profile.interests || []).join(", "),
+          goal: profile.goal || "",
+          skills: (profile.skills || []).join(", "),
+          currentStatus: profile.currentStatus || "",
+          experienceLevel: profile.experienceLevel || "",
+          targetRole: profile.targetRole || "",
+          about: profile.about || "",
         }),
       });
 
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      localStorage.setItem(profileKey(user.id), JSON.stringify(profile));
 
       return {
         success: true,
@@ -253,9 +261,14 @@ export const profileApi = {
         gradYear: data.gradYear == null ? "" : String(data.gradYear),
         interests: normalizeList(data.interests),
         goal: data.goal || "",
+        skills: normalizeList(data.skills),
+        currentStatus: data.currentStatus || "",
+        experienceLevel: data.experienceLevel || "",
+        targetRole: data.targetRole || "",
+        about: data.about || "",
       };
 
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      localStorage.setItem(profileKey(user.id), JSON.stringify(profile));
 
       return {
         success: true,
@@ -263,7 +276,7 @@ export const profileApi = {
       };
     } catch (error) {
       // Keep a previously saved local copy available if the API is temporarily unreachable.
-      const raw = localStorage.getItem(PROFILE_KEY);
+      const raw = localStorage.getItem(profileKey(user.id));
 
       if (raw) {
         try {
@@ -273,7 +286,7 @@ export const profileApi = {
             stale: true,
           };
         } catch {
-          localStorage.removeItem(PROFILE_KEY);
+          localStorage.removeItem(profileKey(user.id));
         }
       }
 

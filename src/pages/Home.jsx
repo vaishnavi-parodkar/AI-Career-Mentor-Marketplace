@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Compass, Sparkles, ArrowRight, Users } from "lucide-react";
+import { Compass, Sparkles, ArrowRight, Users, Mic, UserRound } from "lucide-react";
 import Layout from "../components/Layout";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import CareerCard from "../components/CareerCard";
 import Loader from "../components/Loader";
-import { careerApi } from "../services/api";
+import { careerApi, profileApi } from "../services/api";
+import { getProfileCompletion } from "../utils/profile";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
@@ -17,6 +18,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [assessmentComplete, setAssessmentComplete] = useState(false);
   const [error, setError] = useState("");
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [profilePercent, setProfilePercent] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    profileApi.getProfile().then((res) => {
+      if (!active) return;
+      // No profile row yet counts as incomplete too (a new user who skipped setup).
+      if (!res.success && !/not found/i.test(res.message || "")) return; // server unreachable: say nothing rather than guess
+      const completion = getProfileCompletion(res.success ? res.profile : null);
+      setProfileIncomplete(!completion.isComplete);
+      setProfilePercent(completion.percent);
+    });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -76,6 +92,17 @@ export default function Home() {
 
   return (
     <Layout>
+      {profileIncomplete && (
+        <section className="mb-8">
+          <Card className="flex flex-col items-start gap-4 border-dark-green/20 bg-light-sage/60 p-5 text-left sm:flex-row sm:items-center">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-dark-green text-off-white">
+              <UserRound size={22} aria-hidden="true" />
+            </div>
+            <p className="flex-1 text-base leading-7 text-text-dark"><span className="font-semibold">Your profile is {profilePercent}% complete.</span> Finish it to get a more personal skill-gap analysis and interview practice.</p>
+            <Button variant="outline" onClick={() => navigate("/profile")}>Complete profile</Button>
+          </Card>
+        </section>
+      )}
       <section className="mb-12 grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_0.9fr]">
         <div>
           <p className="type-eyebrow mb-2">Hi {firstName},</p>
@@ -160,6 +187,21 @@ export default function Home() {
           </div>
           <Button variant="coral" onClick={() => navigate("/mentors")}>
             Meet mentors
+          </Button>
+        </Card>
+      </section>
+
+      <section className="mt-6">
+        <Card className="flex flex-col items-start gap-5 p-7 text-left sm:flex-row sm:items-center sm:p-8">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-light-sage text-dark-green">
+            <Mic size={26} aria-hidden="true" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-heading text-xl font-bold text-dark-green">Ready to practise for interviews?</h3>
+            <p className="mt-1 text-base leading-7 text-text-muted">Run a mock interview for your target role and get feedback on every answer.</p>
+          </div>
+          <Button variant="outline" onClick={() => navigate("/mock-interview")}>
+            Start mock interview
           </Button>
         </Card>
       </section>

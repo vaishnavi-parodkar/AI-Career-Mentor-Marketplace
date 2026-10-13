@@ -72,3 +72,9 @@ localStorage after a small artificial delay. To connect Spring Boot:
 Mobile-first with a hamburger menu + bottom tab bar under `lg` breakpoint,
 and a full desktop navbar + multi-column layouts above it. Tested down to
 320px width with no horizontal overflow.
+
+## Combined build notes
+This build includes: Day in the Life, AI Mock Interview, and an onboarding profile step.
+- New users (and anyone without a saved profile) land on `/profile` after signup/login and enter education, skills, experience, status, target role, interests and goal. The profile stays editable from the navbar.
+- New nullable columns on `profiles` (`skills`, `current_status`, `experience_level`, `target_role`, `about`) are added automatically by `ddl-auto=update`; existing profiles keep working.
+- Saved skills/education prefill the Skill Gap "resume context".

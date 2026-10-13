@@ -13,20 +13,35 @@ public class Profile {
     @Column(nullable = false, unique = true)
     private Long userId;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String qualification;
 
-    @Column(nullable = false, length = 150)
+    @Column(length = 150)
     private String field;
 
-    @Column(nullable = false)
+    @Column
     private Integer gradYear;
 
-    @Column(nullable = false, length = 500)
+    @Column(length = 500)
     private String interests;
 
-    @Column(nullable = false, length = 500)
+    @Column(length = 500)
     private String goal;
+
+    @Column(length = 1000)
+    private String skills;
+
+    @Column(length = 100)
+    private String currentStatus;
+
+    @Column(length = 100)
+    private String experienceLevel;
+
+    @Column(length = 150)
+    private String targetRole;
+
+    @Column(length = 1000)
+    private String about;
 
     public Profile() {
     }
@@ -81,5 +96,45 @@ public class Profile {
 
     public void setGoal(String goal) {
         this.goal = goal;
+    }
+
+    public String getSkills() {
+        return skills;
+    }
+
+    public void setSkills(String skills) {
+        this.skills = skills;
+    }
+
+    public String getCurrentStatus() {
+        return currentStatus;
+    }
+
+    public void setCurrentStatus(String currentStatus) {
+        this.currentStatus = currentStatus;
+    }
+
+    public String getExperienceLevel() {
+        return experienceLevel;
+    }
+
+    public void setExperienceLevel(String experienceLevel) {
+        this.experienceLevel = experienceLevel;
+    }
+
+    public String getTargetRole() {
+        return targetRole;
+    }
+
+    public void setTargetRole(String targetRole) {
+        this.targetRole = targetRole;
+    }
+
+    public String getAbout() {
+        return about;
+    }
+
+    public void setAbout(String about) {
+        this.about = about;
     }
 }

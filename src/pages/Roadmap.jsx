@@ -6,6 +6,8 @@ import Button from "../components/Button";
 import { roadmapApi, careerApi } from "../services/api";
 import { useAssessment } from "../context/AssessmentContext";
 import { useAuth } from "../context/AuthContext";
+import GapProgressPanel from "../components/GapProgressPanel";
+import { computeGapProgress, skillProgressForStep } from "../utils/gapProgress";
 
 export default function Roadmap() {
   const navigate = useNavigate();
@@ -124,6 +126,9 @@ export default function Roadmap() {
     };
   }, [user?.id, selectedCareerId]);
 
+  // Recomputed on every render, so ticking a step updates the gap instantly.
+  const gapProgress = computeGapProgress(roadmap);
+
   if (loading) return <Layout><p className="py-16 text-center type-supporting">Loading roadmap context...</p></Layout>;
   if (!selectedCareerId || !career) return <Layout><Card className="mx-auto max-w-xl text-center" elevated><p className="type-eyebrow">Your next step</p><h1 className="mt-2 type-section-title">Suggested career roadmap</h1><p className="mt-3 type-supporting">{error || "Select a career to view its suggested roadmap."}</p><Button className="mt-6" variant="primary" onClick={() => navigate("/careers")}>View career recommendations</Button></Card></Layout>;
 
@@ -144,6 +149,21 @@ export default function Roadmap() {
           .
         </p>
       </div>
+
+      {roadmap && !roadmapLoading && (
+        <div className="mx-auto mb-9 max-w-2xl">
+          {gapProgress ? (
+            <GapProgressPanel progress={gapProgress} title="Your skill gap, live" />
+          ) : (
+            <Card>
+              <p className="text-sm text-text-muted">
+                This roadmap was created before gap tracking was added. Regenerate it
+                from the Skill Gap page to see how each step reduces your gap.
+              </p>
+            </Card>
+          )}
+        </div>
+      )}
 
       <div className="relative mx-auto max-w-2xl">
         {roadmapLoading ? (
@@ -208,6 +228,26 @@ export default function Roadmap() {
                   <p className="type-supporting">
                     {step.description}
                   </p>
+
+                  {gapProgress && step.skillName && step.gapReduction > 0 && (
+                    <p
+                      className={`mt-3 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold ${
+                        step.completed
+                          ? "bg-[#e8f1df] text-dark-green"
+                          : "bg-[#fff0e9] text-[#d96f58]"
+                      }`}
+                    >
+                      {step.completed
+                        ? `✓ Closed ${step.gapReduction}% of your ${step.skillName} gap`
+                        : `Closes ${step.gapReduction}% of your ${step.skillName} gap`}
+                      {(() => {
+                        const skill = skillProgressForStep(gapProgress, step);
+                        return skill
+                          ? ` · now ${skill.current}% / ${skill.required}%`
+                          : "";
+                      })()}
+                    </p>
+                  )}
 
                   {step.recommendations && (
                     <div className="mt-4 rounded-xl bg-[#fbf9f2] p-4">

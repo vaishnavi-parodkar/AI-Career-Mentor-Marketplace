@@ -28,13 +28,19 @@ public class ProfileService {
                 .findByUserId(request.getUserId())
                 .orElse(new Profile());
 
-        // Set/update profile information
+        // Set/update profile information. Every field except userId is optional so a
+        // profile can be saved in parts (onboarding) and completed or edited later.
         profile.setUserId(request.getUserId());
-        profile.setQualification(request.getQualification().trim());
-        profile.setField(request.getField().trim());
+        profile.setQualification(clean(request.getQualification()));
+        profile.setField(clean(request.getField()));
         profile.setGradYear(request.getGradYear());
-        profile.setInterests(request.getInterests().trim());
-        profile.setGoal(request.getGoal().trim());
+        profile.setInterests(clean(request.getInterests()));
+        profile.setGoal(clean(request.getGoal()));
+        profile.setSkills(clean(request.getSkills()));
+        profile.setCurrentStatus(clean(request.getCurrentStatus()));
+        profile.setExperienceLevel(clean(request.getExperienceLevel()));
+        profile.setTargetRole(clean(request.getTargetRole()));
+        profile.setAbout(clean(request.getAbout()));
 
         // Save to MySQL
         Profile savedProfile = profileRepository.save(profile);
@@ -58,6 +64,12 @@ public class ProfileService {
         return convertToResponse(profile);
     }
 
+    private String clean(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     // Convert Entity → Response DTO
     private ProfileResponse convertToResponse(Profile profile) {
 
@@ -68,7 +80,12 @@ public class ProfileService {
                 profile.getField(),
                 profile.getGradYear(),
                 profile.getInterests(),
-                profile.getGoal()
+                profile.getGoal(),
+                profile.getSkills(),
+                profile.getCurrentStatus(),
+                profile.getExperienceLevel(),
+                profile.getTargetRole(),
+                profile.getAbout()
         );
     }
 }

@@ -27,6 +27,14 @@ public class CareerRoadmap {
     @Column(length = 2000)
     private String summary;
 
+    /**
+     * JSON snapshot of the skill-gap analysis this roadmap was generated from:
+     * {"overallReadiness":int,"skills":[{"skillName","currentLevel","requiredLevel"}]}.
+     * It is the baseline that completed steps are measured against.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String gapSnapshot;
+
     @OneToMany(
             mappedBy = "roadmap",
             cascade = CascadeType.ALL,
@@ -92,5 +100,13 @@ public class CareerRoadmap {
 
     public void setSteps(List<RoadmapStep> steps) {
         this.steps = steps;
+    }
+
+    public String getGapSnapshot() {
+        return gapSnapshot;
+    }
+
+    public void setGapSnapshot(String gapSnapshot) {
+        this.gapSnapshot = gapSnapshot;
     }
 }

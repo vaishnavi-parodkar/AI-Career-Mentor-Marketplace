@@ -14,7 +14,9 @@ import Loader from "../components/Loader";
 
 import { useAssessment } from "../context/AssessmentContext";
 import { useAuth } from "../context/AuthContext";
-import { careerApi, skillAssessmentApi, roadmapApi } from "../services/api";
+import { careerApi, skillAssessmentApi, roadmapApi, profileApi } from "../services/api";
+import GapProgressPanel from "../components/GapProgressPanel";
+import { computeGapProgress, pickLatestRoadmap } from "../utils/gapProgress";
 
 /*
  * Default skills shown in the UI.
@@ -63,6 +65,7 @@ export default function SkillGap() {
   const [skills, setSkills] = useState(DEFAULT_SKILLS);
   const [resumeContext, setResumeContext] = useState("");
   const [analysis, setAnalysis] = useState(null);
+  const [roadmap, setRoadmap] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
@@ -85,6 +88,30 @@ export default function SkillGap() {
     setError("");
 
     try {
+      // Prefill resume context from the user's saved profile (skills, education, experience).
+      profileApi.getProfile().then((res) => {
+        const p = res?.profile;
+        if (!res?.success || !p) return;
+        const parts = [
+          p.skills?.length ? `Skills: ${p.skills.join(", ")}.` : "",
+          p.qualification ? `Education: ${p.qualification}${p.field ? ` in ${p.field}` : ""}${p.gradYear ? ` (${p.gradYear})` : ""}.` : "",
+          p.currentStatus ? `Current status: ${p.currentStatus}.` : "",
+          p.experienceLevel ? `Experience: ${p.experienceLevel}.` : "",
+          p.targetRole ? `Target role: ${p.targetRole}.` : "",
+          p.about || "",
+        ].filter(Boolean);
+        if (parts.length) setResumeContext((current) => current || parts.join(" "));
+      });
+
+      // Roadmap progress (non-blocking): completed steps shrink the gap.
+      if (hasBackendUser) {
+        roadmapApi.getByUser(user.id).then((res) => {
+          if (res?.success) {
+            setRoadmap(pickLatestRoadmap(res.roadmaps, selectedCareerId));
+          }
+        });
+      }
+
       const [careerDetails, gapResponse] = await Promise.all([
         careerApi.getById(selectedCareerId),
 
@@ -407,6 +434,28 @@ export default function SkillGap() {
                 />
 
                 <span>{error}</span>
+              </div>
+          )}
+
+          {/* =====================================================
+            ROADMAP PROGRESS (gap shrinks as roadmap steps are done)
+        ====================================================== */}
+
+          {roadmap && computeGapProgress(roadmap) && (
+              <div className="mb-5">
+                <GapProgressPanel
+                    progress={computeGapProgress(roadmap)}
+                    title="Progress from your roadmap"
+                />
+
+                <div className="mt-3 flex justify-end">
+                  <Button
+                      variant="outline"
+                      onClick={() => navigate("/roadmap")}
+                  >
+                    Continue roadmap
+                  </Button>
+                </div>
               </div>
           )}
 

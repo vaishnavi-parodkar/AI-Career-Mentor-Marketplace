@@ -549,7 +549,13 @@ public class GroqSkillGapService {
                or completed projects.
             10. Keep the roadmap realistic for a student or early-career
                 learner.
-            11. Return only valid structured JSON.
+            11. For every step that works on a specific skill, skillName
+                MUST be copied exactly (same spelling) from a skillName in
+                the skill-gap analysis. Use an empty string only for
+                general steps that are not tied to one skill.
+            12. Give each skill with a gap enough steps to realistically
+                close it; each completed step will reduce that skill's gap.
+            13. Return only valid structured JSON.
             """;
 
     String userPrompt = """

@@ -4,8 +4,9 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import BackButton from "../components/BackButton";
 import Logo from "../components/Logo";
-import { authApi } from "../services/api";
+import { authApi, profileApi } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { getProfileCompletion } from "../utils/profile";
 import authBackground from "../assets/image 1.jpeg";
 
 export default function Login() {
@@ -35,7 +36,10 @@ export default function Login() {
     setLoading(false);
     if (res.success) {
       login(res.user);
-      navigate("/home");
+      // Anyone whose profile is missing or only half filled lands on the profile page to finish it.
+      const profileRes = await profileApi.getProfile();
+      const complete = profileRes.success && profileRes.profile && getProfileCompletion(profileRes.profile).isComplete;
+      navigate(complete ? "/home" : "/profile");
     } else {
       setFormError(res.message);
     }

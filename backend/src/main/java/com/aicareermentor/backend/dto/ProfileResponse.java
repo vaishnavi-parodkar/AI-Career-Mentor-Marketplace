@@ -9,6 +9,11 @@ public class ProfileResponse {
     private Integer gradYear;
     private String interests;
     private String goal;
+    private String skills;
+    private String currentStatus;
+    private String experienceLevel;
+    private String targetRole;
+    private String about;
 
     public ProfileResponse() {
     }
@@ -20,7 +25,12 @@ public class ProfileResponse {
             String field,
             Integer gradYear,
             String interests,
-            String goal
+            String goal,
+            String skills,
+            String currentStatus,
+            String experienceLevel,
+            String targetRole,
+            String about
     ) {
         this.id = id;
         this.userId = userId;
@@ -29,6 +39,11 @@ public class ProfileResponse {
         this.gradYear = gradYear;
         this.interests = interests;
         this.goal = goal;
+        this.skills = skills;
+        this.currentStatus = currentStatus;
+        this.experienceLevel = experienceLevel;
+        this.targetRole = targetRole;
+        this.about = about;
     }
 
     public Long getId() {
@@ -85,5 +100,45 @@ public class ProfileResponse {
 
     public void setGoal(String goal) {
         this.goal = goal;
+    }
+
+    public String getSkills() {
+        return skills;
+    }
+
+    public void setSkills(String skills) {
+        this.skills = skills;
+    }
+
+    public String getCurrentStatus() {
+        return currentStatus;
+    }
+
+    public void setCurrentStatus(String currentStatus) {
+        this.currentStatus = currentStatus;
+    }
+
+    public String getExperienceLevel() {
+        return experienceLevel;
+    }
+
+    public void setExperienceLevel(String experienceLevel) {
+        this.experienceLevel = experienceLevel;
+    }
+
+    public String getTargetRole() {
+        return targetRole;
+    }
+
+    public void setTargetRole(String targetRole) {
+        this.targetRole = targetRole;
+    }
+
+    public String getAbout() {
+        return about;
+    }
+
+    public void setAbout(String about) {
+        this.about = about;
     }
 }

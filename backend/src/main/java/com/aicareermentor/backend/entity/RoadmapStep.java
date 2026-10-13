@@ -38,6 +38,13 @@ public class RoadmapStep {
     @Column(length = 2000)
     private String recommendations;
 
+    /** Skill (from the skill-gap analysis) this step works on; null for general steps. */
+    @Column(length = 100)
+    private String skillName;
+
+    /** How many percentage points of that skill's gap completing this step closes. */
+    private Integer gapReduction;
+
     public RoadmapStep() {
     }
 
@@ -126,5 +133,21 @@ public class RoadmapStep {
 
     public void setRecommendations(String recommendations) {
         this.recommendations = recommendations;
+    }
+
+    public String getSkillName() {
+        return skillName;
+    }
+
+    public void setSkillName(String skillName) {
+        this.skillName = skillName;
+    }
+
+    public Integer getGapReduction() {
+        return gapReduction == null ? 0 : gapReduction;
+    }
+
+    public void setGapReduction(Integer gapReduction) {
+        this.gapReduction = gapReduction;
     }
 }
