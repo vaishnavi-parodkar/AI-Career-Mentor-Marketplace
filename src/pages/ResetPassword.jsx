@@ -1,3 +1,5 @@
+import { validatePassword } from "../utils/password";
+import PasswordChecklist from "../components/PasswordChecklist";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { KeyRound } from "lucide-react";
@@ -21,7 +23,7 @@ export default function ResetPassword() {
 
   const validate = () => {
     const errs = {};
-    if (form.password.length < 8) errs.password = "Password must be at least 8 characters.";
+    { const pw = validatePassword(form.password); if (pw) errs.password = pw; }
     if (form.confirm !== form.password) errs.confirm = "Passwords do not match.";
     setErrors(errs);
     return Object.keys(errs).length === 0;

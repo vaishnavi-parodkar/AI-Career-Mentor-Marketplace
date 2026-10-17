@@ -1,0 +1,254 @@
+{
+ "Java": [
+  "java"
+ ],
+ "Python": [
+  "python"
+ ],
+ "JavaScript": [
+  "javascript",
+  "js",
+  "ecmascript"
+ ],
+ "TypeScript": [
+  "typescript"
+ ],
+ "C": [
+  "c language",
+  "c programming"
+ ],
+ "C++": [
+  "c++"
+ ],
+ "Spring Boot": [
+  "spring boot",
+  "springboot",
+  "spring"
+ ],
+ "React": [
+  "react",
+  "reactjs",
+  "react.js"
+ ],
+ "Angular": [
+  "angular"
+ ],
+ "Node.js": [
+  "node.js",
+  "nodejs",
+  "node"
+ ],
+ "SQL": [
+  "sql",
+  "mysql",
+  "postgresql",
+  "postgres",
+  "oracle db",
+  "t-sql"
+ ],
+ "MongoDB": [
+  "mongodb"
+ ],
+ "REST APIs": [
+  "rest api",
+  "restful",
+  "rest apis"
+ ],
+ "Git": [
+  "git",
+  "github",
+  "gitlab"
+ ],
+ "Docker": [
+  "docker"
+ ],
+ "Kubernetes": [
+  "kubernetes",
+  "k8s"
+ ],
+ "AWS": [
+  "aws",
+  "amazon web services"
+ ],
+ "Azure": [
+  "azure"
+ ],
+ "GCP": [
+  "gcp",
+  "google cloud"
+ ],
+ "Linux": [
+  "linux",
+  "unix",
+  "bash"
+ ],
+ "Data Structures": [
+  "data structures",
+  "dsa",
+  "algorithms"
+ ],
+ "System Design": [
+  "system design"
+ ],
+ "Microservices": [
+  "microservices"
+ ],
+ "Excel": [
+  "excel",
+  "spreadsheets"
+ ],
+ "Power BI": [
+  "power bi",
+  "powerbi"
+ ],
+ "Tableau": [
+  "tableau"
+ ],
+ "Data Visualization": [
+  "data visualization",
+  "data visualisation",
+  "dashboards"
+ ],
+ "Statistics": [
+  "statistics",
+  "statistical"
+ ],
+ "Machine Learning": [
+  "machine learning"
+ ],
+ "Pandas": [
+  "pandas"
+ ],
+ "NumPy": [
+  "numpy"
+ ],
+ "ETL": [
+  "etl"
+ ],
+ "Agile": [
+  "agile",
+  "scrum",
+  "kanban"
+ ],
+ "Jira": [
+  "jira"
+ ],
+ "Product Strategy": [
+  "product strategy",
+  "product management"
+ ],
+ "User Research": [
+  "user research",
+  "ux research"
+ ],
+ "Roadmapping": [
+  "roadmap",
+  "roadmapping"
+ ],
+ "Analytics": [
+  "analytics",
+  "a/b testing",
+  "ab testing"
+ ],
+ "Prioritization": [
+  "prioritization",
+  "prioritisation"
+ ],
+ "Communication": [
+  "communication",
+  "stakeholder"
+ ],
+ "Leadership": [
+  "leadership",
+  "team lead"
+ ],
+ "Project Planning": [
+  "project planning",
+  "project management"
+ ],
+ "Risk Management": [
+  "risk management"
+ ],
+ "Recruitment": [
+  "recruitment",
+  "talent acquisition",
+  "sourcing"
+ ],
+ "Onboarding": [
+  "onboarding"
+ ],
+ "Employee Relations": [
+  "employee relations"
+ ],
+ "HR Analytics": [
+  "hr analytics",
+  "people analytics"
+ ],
+ "Networking": [
+  "networking",
+  "tcp/ip",
+  "firewall"
+ ],
+ "Threat Detection": [
+  "threat detection",
+  "incident response"
+ ],
+ "OWASP": [
+  "owasp"
+ ],
+ "SIEM": [
+  "siem",
+  "splunk"
+ ],
+ "Security+": [
+  "security+"
+ ],
+ "Penetration Testing": [
+  "penetration testing",
+  "pentest"
+ ],
+ "Embedded C": [
+  "embedded c",
+  "embedded systems"
+ ],
+ "Microcontrollers": [
+  "microcontroller",
+  "arduino",
+  "stm32"
+ ],
+ "Digital Electronics": [
+  "digital electronics"
+ ],
+ "PCB Design": [
+  "pcb"
+ ],
+ "IoT": [
+  "iot"
+ ],
+ "Figma": [
+  "figma"
+ ],
+ "HTML/CSS": [
+  "html",
+  "css"
+ ],
+ "Testing": [
+  "junit",
+  "unit testing",
+  "testing",
+  "selenium"
+ ],
+ "CI/CD": [
+  "ci/cd",
+  "jenkins",
+  "github actions"
+ ],
+ "Hibernate/JPA": [
+  "hibernate",
+  "jpa"
+ ],
+ "Cloud": [
+  "cloud computing",
+  "cloud"
+ ]
+}

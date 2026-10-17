@@ -1,4 +1,5 @@
-import { Award, Flag, Footprints, Lock, Map, Mic, Target, Trophy, UserCheck } from "lucide-react";
+import { useState } from "react";
+import { Compass, Layers, PenLine, Sparkles, Award, Flag, Footprints, Lock, Map, Mic, Target, Trophy, UserCheck } from "lucide-react";
 import Card from "./Card";
 
 const ICONS = {
@@ -10,9 +11,16 @@ const ICONS = {
   trophy: Trophy,
   mic: Mic,
   award: Award,
+  sparkles: Sparkles,
+  pen: PenLine,
+  compass: Compass,
+  layers: Layers,
 };
 
 export default function BadgeShelf({ badges }) {
+  const [showAll, setShowAll] = useState(false);
+  const LIMIT = 8;
+  const visible = showAll ? badges : badges.slice(0, LIMIT);
   const earnedCount = badges.filter((badge) => badge.earned).length;
 
   return (
@@ -30,7 +38,7 @@ export default function BadgeShelf({ badges }) {
       </div>
 
       <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {badges.map((badge) => {
+        {visible.map((badge) => {
           const Icon = ICONS[badge.icon] || Award;
           return (
             <li
@@ -58,6 +66,11 @@ export default function BadgeShelf({ badges }) {
           );
         })}
       </ul>
+      {badges.length > LIMIT && (
+        <button type="button" onClick={() => setShowAll((v) => !v)} aria-expanded={showAll} className="focus-ring mt-4 min-h-11 w-full rounded-xl border border-border text-sm font-semibold text-dark-green transition-colors hover:bg-light-sage/60">
+          {showAll ? "Show fewer" : `View all ${badges.length} badges`}
+        </button>
+      )}
     </Card>
   );
 }

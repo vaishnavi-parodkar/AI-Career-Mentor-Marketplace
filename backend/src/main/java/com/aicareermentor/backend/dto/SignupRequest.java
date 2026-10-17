@@ -2,6 +2,7 @@ package com.aicareermentor.backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class SignupRequest {
@@ -16,6 +17,7 @@ public class SignupRequest {
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9\\s]).{8,100}$", message = "Password must be 8+ characters with an uppercase letter, lowercase letter, number and special symbol")
     private String password;
 
     public SignupRequest() {

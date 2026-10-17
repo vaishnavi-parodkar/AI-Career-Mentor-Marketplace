@@ -22,7 +22,7 @@ import {
 } from "../data/interviewBank";
 import { evaluateLocally } from "./interviewEvaluator";
 
-const BACKEND_BASE_URL = "http://localhost:8080";
+import { BACKEND_BASE_URL, authHeaders } from "./http";
 const QUESTIONS_TIMEOUT_MS = 15000;
 const EVALUATE_TIMEOUT_MS = 40000;
 const HISTORY_LIMIT = 20;
@@ -34,7 +34,7 @@ const postJson = async (path, body, timeoutMs) => {
   try {
     const response = await fetch(`${BACKEND_BASE_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
       signal: controller.signal,
     });

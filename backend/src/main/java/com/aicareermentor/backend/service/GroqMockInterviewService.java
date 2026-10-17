@@ -39,9 +39,13 @@ public class GroqMockInterviewService {
     @Value("${groq.model}")
     private String groqModel;
 
-    public GroqMockInterviewService(ObjectMapper objectMapper) {
+    private final com.aicareermentor.backend.ai.AiGatewayService gateway;
+
+    public GroqMockInterviewService(ObjectMapper objectMapper,
+                                    com.aicareermentor.backend.ai.AiGatewayService gateway) {
         this.restClient = RestClient.builder().build();
         this.objectMapper = objectMapper;
+        this.gateway = gateway;
     }
 
     // ------------------------------------------------------------
@@ -241,78 +245,11 @@ public class GroqMockInterviewService {
             int maxTokens,
             Map<String, Object> responseFormat) {
 
-        if (groqApiKey == null || groqApiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "GROQ_API_KEY is not configured."
-            );
-        }
-
-        Map<String, Object> requestBody = new HashMap<>();
-
-        requestBody.put("model", groqModel);
-
-        requestBody.put(
-                "messages",
-                List.of(
-                        Map.of("role", "system", "content", systemPrompt),
-                        Map.of("role", "user", "content", userPrompt)
-                )
-        );
-
-        requestBody.put("temperature", temperature);
-        requestBody.put("max_completion_tokens", maxTokens);
-        requestBody.put("response_format", responseFormat);
-
-        try {
-
-            JsonNode response = restClient
-                    .post()
-                    .uri(groqApiUrl)
-                    .header(
-                            HttpHeaders.AUTHORIZATION,
-                            "Bearer " + groqApiKey
-                    )
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(requestBody)
-                    .retrieve()
-                    .body(JsonNode.class);
-
-            if (response == null) {
-                throw new IllegalStateException(
-                        "Groq returned an empty response."
-                );
-            }
-
-            JsonNode contentNode = response
-                    .path("choices")
-                    .path(0)
-                    .path("message")
-                    .path("content");
-
-            if (contentNode.isMissingNode() || contentNode.isNull()) {
-                throw new IllegalStateException(
-                        "Groq response did not contain content."
-                );
-            }
-
-            String content = contentNode.asText();
-
-            if (content == null || content.isBlank()) {
-                throw new IllegalStateException(
-                        "Groq returned empty content."
-                );
-            }
-
-            return content;
-
-        } catch (RestClientResponseException e) {
-
-            throw new IllegalStateException(
-                    "Groq mock interview request failed. HTTP status: "
-                            + e.getStatusCode(),
-                    e
-            );
-        }
+        // Goes through the shared AI gateway (Gemini -> UnoRouter -> HF -> Cohere -> Groq).
+        // AiUnavailableException extends IllegalStateException, so the controller's 503 handling still applies.
+        return gateway.chat(new com.aicareermentor.backend.ai.AiRequest(
+                "mock-interview", systemPrompt, userPrompt, temperature, maxTokens,
+                responseFormat, List.of(), 0)).content();
     }
 
     private <T> T parse(String content, Class<T> type) {

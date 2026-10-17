@@ -25,7 +25,7 @@ import { careers } from "../data/careers";
 import { mentors, getMockMentorReply } from "../data/mentors";
 
 const LATENCY = 500;
-const BACKEND_BASE_URL = "http://localhost:8080";
+import { BACKEND_BASE_URL, getToken, setToken, clearToken, authHeaders, handleUnauthorized, request } from "./http";
 const SERVER_ERROR_MESSAGE = "Unable to connect to the server. Please try again.";
 
 const delay = (data, ms = LATENCY) =>
@@ -41,11 +41,17 @@ const requestJson = async (path, options) => {
 
   try {
     response = await fetch(`${BACKEND_BASE_URL}${path}`, {
-      headers: { "Content-Type": "application/json" },
       ...options,
+      headers: authHeaders({ "Content-Type": "application/json" }),
     });
   } catch {
     throw new Error(SERVER_ERROR_MESSAGE);
+  }
+
+  // An expired or missing token on a protected call sends the user back to login
+  if (response.status === 401 && !path.startsWith("/api/auth/")) {
+    handleUnauthorized();
+    throw new Error("Please log in again.");
   }
 
   const text = await response.text();
@@ -68,6 +74,7 @@ const normalizeBackendUser = (user) => ({
   id: user.id,
   fullName: user.name,
   email: user.email,
+  role: user.role || "USER",
 });
 
 const normalizeList = (value) =>
@@ -109,6 +116,7 @@ export const authApi = {
         body: JSON.stringify({ name: fullName, email, password }),
       });
       const user = normalizeBackendUser(data.user);
+      setToken(data.token);
       localStorage.setItem(SESSION_KEY, JSON.stringify(user));
       return { success: true, user, message: data.message };
     } catch (error) {
@@ -123,6 +131,7 @@ export const authApi = {
         body: JSON.stringify({ email, password }),
       });
       const user = normalizeBackendUser(data.user);
+      setToken(data.token);
       localStorage.setItem(SESSION_KEY, JSON.stringify(user));
       return { success: true, user, message: data.message };
     } catch (error) {
@@ -173,6 +182,7 @@ export const authApi = {
   },
 
   logout: async () => {
+    clearToken();
     localStorage.removeItem(SESSION_KEY);
     return delay({ success: true });
   },
@@ -184,7 +194,7 @@ export const authApi = {
     try {
       const user = JSON.parse(raw);
 
-      if (!Number.isInteger(user?.id) || user.id <= 0) {
+      if (!Number.isInteger(user?.id) || user.id <= 0 || !getToken()) {
         localStorage.removeItem(SESSION_KEY);
         return null;
       }
@@ -377,16 +387,38 @@ export const careerApi = {
 };
 
 export const mentorApi = {
-  getAll: async () => delay(mentors),
+  // Smart search (filters + semantic ranking) on the backend; falls back to the bundled list offline.
+  getAll: async (filters = {}) => {
+    try {
+      const qs = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== "" && v !== "all") qs.set(k, v);
+      });
+      return await request(`/api/marketplace/mentors${qs.toString() ? `?${qs}` : ""}`);
+    } catch {
+      return delay(mentors);
+    }
+  },
 
-  getById: async (id) =>
-    delay(mentors.find((m) => m.id === id) || null),
+  getById: async (id) => {
+    try {
+      return await request(`/api/marketplace/mentors/${encodeURIComponent(id)}`);
+    } catch {
+      return delay(mentors.find((m) => m.id === id) || null);
+    }
+  },
 
-  sendMessage: async (mentor, message) =>
-    delay(
-      { reply: getMockMentorReply(mentor, message) },
-      700
-    ),
+  sendMessage: async (mentor, message, history = [], language = "en") => {
+    try {
+      return await request(`/api/marketplace/mentors/${encodeURIComponent(mentor.id)}/chat`, {
+        method: "POST",
+        body: { message, history, language },
+        timeoutMs: 60000,
+      });
+    } catch {
+      return delay({ reply: getMockMentorReply(mentor, message), provider: "offline", sources: [] }, 700);
+    }
+  },
 };
 
 export const assessmentApi = {

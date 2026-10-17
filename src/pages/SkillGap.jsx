@@ -65,6 +65,19 @@ export default function SkillGap() {
   const [skills, setSkills] = useState(DEFAULT_SKILLS);
   const [resumeContext, setResumeContext] = useState("");
   const [analysis, setAnalysis] = useState(null);
+  // Only fills the box when the user asks; nothing is written for them automatically.
+  const fillFromProfile = async () => {
+    const res = await profileApi.getProfile();
+    const p = res?.profile;
+    if (!res?.success || !p) return;
+    const parts = [
+      p.skills?.length ? `Skills: ${p.skills.join(", ")}.` : "",
+      p.qualification ? `Education: ${p.qualification}${p.field ? ` in ${p.field}` : ""}.` : "",
+      p.experienceLevel ? `Experience: ${p.experienceLevel}.` : "",
+      p.about || "",
+    ].filter(Boolean);
+    setResumeContext(parts.join(" "));
+  };
   const [roadmap, setRoadmap] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -88,21 +101,6 @@ export default function SkillGap() {
     setError("");
 
     try {
-      // Prefill resume context from the user's saved profile (skills, education, experience).
-      profileApi.getProfile().then((res) => {
-        const p = res?.profile;
-        if (!res?.success || !p) return;
-        const parts = [
-          p.skills?.length ? `Skills: ${p.skills.join(", ")}.` : "",
-          p.qualification ? `Education: ${p.qualification}${p.field ? ` in ${p.field}` : ""}${p.gradYear ? ` (${p.gradYear})` : ""}.` : "",
-          p.currentStatus ? `Current status: ${p.currentStatus}.` : "",
-          p.experienceLevel ? `Experience: ${p.experienceLevel}.` : "",
-          p.targetRole ? `Target role: ${p.targetRole}.` : "",
-          p.about || "",
-        ].filter(Boolean);
-        if (parts.length) setResumeContext((current) => current || parts.join(" "));
-      });
-
       // Roadmap progress (non-blocking): completed steps shrink the gap.
       if (hasBackendUser) {
         roadmapApi.getByUser(user.id).then((res) => {
@@ -552,12 +550,15 @@ export default function SkillGap() {
           ================================================== */}
 
             <div className="mt-4">
+              <div className="mb-1.5 flex items-center justify-between gap-3">
               <label
                   htmlFor="resume-context"
-                  className="mb-1.5 block text-sm font-semibold text-[#162c29]"
+                  className="block text-sm font-semibold text-[#162c29]"
               >
                 Optional resume / profile context
               </label>
+              <button type="button" onClick={fillFromProfile} className="text-xs font-semibold text-dark-green hover:underline">Use my profile details</button>
+              </div>
 
               <textarea
                   id="resume-context"

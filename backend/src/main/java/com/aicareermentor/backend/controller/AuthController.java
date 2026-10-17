@@ -7,6 +7,8 @@ import com.aicareermentor.backend.dto.ForgotPasswordRequest;
 import com.aicareermentor.backend.dto.ResetPasswordRequest;
 import com.aicareermentor.backend.service.AuthService;
 import com.aicareermentor.backend.service.PasswordResetService;
+import com.aicareermentor.backend.security.JwtService;
+import com.aicareermentor.backend.service.NotificationService;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,13 +24,19 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+    private final JwtService jwtService;
+    private final NotificationService notificationService;
 
     public AuthController(
             AuthService authService,
-            PasswordResetService passwordResetService) {
+            PasswordResetService passwordResetService,
+            JwtService jwtService,
+            NotificationService notificationService) {
 
         this.authService = authService;
         this.passwordResetService = passwordResetService;
+        this.jwtService = jwtService;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("/signup")
@@ -41,7 +49,10 @@ public class AuthController {
 
         response.put("success", true);
         response.put("user", user);
+        response.put("token", jwtService.issue(user.getId(), user.getEmail(), user.getRole()));
         response.put("message", "Account created successfully");
+        notificationService.create(user.getId(), "WELCOME", "Welcome to Pathwise",
+                "Start by completing your profile and taking the career assessment.", "/profile");
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -58,6 +69,7 @@ public class AuthController {
 
         response.put("success", true);
         response.put("user", user);
+        response.put("token", jwtService.issue(user.getId(), user.getEmail(), user.getRole()));
         response.put("message", "Login successful");
 
         return ResponseEntity.ok(response);

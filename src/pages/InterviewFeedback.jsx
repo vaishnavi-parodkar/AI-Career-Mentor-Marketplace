@@ -71,7 +71,7 @@ export default function InterviewFeedback() {
 
         <Card className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between" elevated>
           <div className="flex items-center gap-4">
-            <MatchRing value={feedback.overall} size={80} />
+            <MatchRing value={feedback.overall} size={80} label="overall interview score" />
             <div>
               <p className="type-meta">Overall score</p>
               <p className="font-heading text-xl font-bold text-dark-green">{feedback.summary}</p>

@@ -17,9 +17,13 @@ public class CareerRoadmapController {
     private final CareerRoadmapService careerRoadmapService;
 
     public CareerRoadmapController(
-            CareerRoadmapService careerRoadmapService) {
+            CareerRoadmapService careerRoadmapService,
+            com.aicareermentor.backend.service.ProgressService progressService) {
         this.careerRoadmapService = careerRoadmapService;
+        this.progressService = progressService;
     }
+
+    private final com.aicareermentor.backend.service.ProgressService progressService;
 
     @PostMapping
     public ResponseEntity<CareerRoadmap> createRoadmap(
@@ -76,11 +80,14 @@ public class CareerRoadmapController {
                 @PathVariable Long stepId,
                 @RequestParam Boolean completed) {
 
-        return ResponseEntity.ok(
-                careerRoadmapService.updateStepCompletion(
-                        stepId,
-                        completed
-                )
+        RoadmapStep updated = careerRoadmapService.updateStepCompletion(
+                stepId,
+                completed
         );
+
+        // keep skill proficiency, badges and notifications in sync
+        progressService.onStepChanged(updated);
+
+        return ResponseEntity.ok(updated);
         }
 }

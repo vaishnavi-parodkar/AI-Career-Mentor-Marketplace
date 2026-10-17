@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { AssessmentProvider } from "./context/AssessmentContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import { LanguageProvider } from "./i18n";
 
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
@@ -27,11 +29,17 @@ import MockInterview from "./pages/MockInterview";
 import ProgressDashboard from "./pages/ProgressDashboard";
 import InterviewFeedback from "./pages/InterviewFeedback";
 import MarketInsights from "./pages/MarketInsights";
+import Jobs from "./pages/Jobs";
+import ResumeAnalysis from "./pages/ResumeAnalysis";
+import Sessions from "./pages/Sessions";
+import Learning from "./pages/Learning";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Preview from "./pages/Preview";
 
 function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <AssessmentProvider>
         <BrowserRouter>
@@ -65,11 +73,17 @@ function App() {
             <Route path="/interview-feedback" element={<ProtectedRoute><InterviewFeedback /></ProtectedRoute>} />
             <Route path="/market-insights" element={<ProtectedRoute><MarketInsights /></ProtectedRoute>} />
 
+            <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
+            <Route path="/resume" element={<ProtectedRoute><ResumeAnalysis /></ProtectedRoute>} />
+            <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
+            <Route path="/learning" element={<ProtectedRoute><Learning /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AssessmentProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 

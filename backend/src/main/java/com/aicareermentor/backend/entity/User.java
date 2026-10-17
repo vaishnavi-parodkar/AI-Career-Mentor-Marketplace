@@ -26,6 +26,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // USER (default) or ADMIN. Existing rows have null and are treated as USER.
+    @Column(length = 20)
+    private String role = "USER";
+
     public User() {
     }
 
@@ -65,5 +69,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role == null ? "USER" : role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

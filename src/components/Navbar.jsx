@@ -3,18 +3,29 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, User } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../i18n";
+import NotificationBell from "./NotificationBell";
 
-const links = [
-  { to: "/home", label: "Home" },
-  { to: "/careers", label: "Careers" },
-  { to: "/mentors", label: "Mentors" },
-  { to: "/roadmap", label: "Roadmap" },
-  { to: "/progress", label: "Progress" },
+const baseLinks = [
+  { to: "/home", key: "nav.home" },
+  { to: "/careers", key: "nav.careers" },
+  { to: "/mentors", key: "nav.mentors" },
+  { to: "/roadmap", key: "nav.roadmap" },
+  { to: "/jobs", key: "nav.jobs" },
+  { to: "/resume", key: "nav.resume" },
+  { to: "/mock-interview", key: "nav.practice" },
+  { to: "/learning", key: "nav.learning" },
+  { to: "/progress", key: "nav.progress" },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { t } = useLanguage();
+  const links = [
+    ...baseLinks.map((l) => ({ ...l, label: t(l.key) })),
+    ...(user?.role === "ADMIN" ? [{ to: "/admin", label: t("nav.admin") }] : []),
+  ];
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -33,7 +44,7 @@ export default function Navbar() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                `focus-ring rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
                   isActive ? "bg-light-sage text-dark-green" : "text-text-dark hover:bg-light-sage/60"
                 }`
               }
@@ -44,6 +55,7 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
+          <NotificationBell />
           <button
             type="button"
             onClick={() => navigate("/profile")}
@@ -105,12 +117,22 @@ export default function Navbar() {
                 </NavLink>
               ))}
               <NavLink
+                to="/sessions"
+                onClick={() => setOpen(false)}
+                className="focus-ring rounded-xl px-4 py-3 text-base font-semibold text-text-dark"
+              >
+                {t("nav.sessions")}
+              </NavLink>
+              <NavLink
                 to="/profile"
                 onClick={() => setOpen(false)}
                 className="focus-ring rounded-xl px-4 py-3 text-base font-semibold text-text-dark"
               >
                 Profile
               </NavLink>
+              <div className="mt-2 flex items-center gap-2 px-2">
+                <NotificationBell />
+              </div>
             </nav>
             <button
               type="button"

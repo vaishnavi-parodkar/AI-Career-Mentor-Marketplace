@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { progressApi } from "../services/platformApi";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, Wrench, Play, RotateCcw, BookOpen, Sun, Bell, Zap, Target, Users, Sparkles } from "lucide-react";
 import Layout from "../components/Layout";
@@ -178,7 +179,18 @@ export default function DayInLife() {
   }, [careerId]);
 
   const day = dayInLife[careerId];
+  const savedRunRef = useRef(false);
   const scenes = useMemo(() => (day ? buildScenes(careerId, day.schedule) : null), [careerId, day]);
+
+  // Store the finished simulation so behavioural pattern analysis can use it
+  useEffect(() => {
+    if (phase !== "result" || !scenes || savedRunRef.current) return;
+    savedRunRef.current = true;
+    const choices = picks.map((optIdx, i) => ({ scene: scenes[i]?.time, lean: scenes[i]?.options[optIdx]?.lean }));
+    progressApi
+      .saveSimulation({ careerId, choices, energy: meters.energy, results: meters.results, trust: meters.trust })
+      .catch(() => {});
+  }, [phase, scenes, picks, meters, careerId]);
 
   const scene = scenes?.[sceneIndex];
   const chosenIndex = picks[sceneIndex]; // undefined until the person decides
@@ -285,11 +297,18 @@ export default function DayInLife() {
     return (
       <Layout>
         <div className="mb-6"><BackButton to={`/careers/${careerId}${suffix}`} /></div>
-        <header className="border border-border bg-off-white p-6 sm:p-9">
-          <p className="type-eyebrow">A day in the life</p>
-          <h1 className="mt-3 font-heading text-4xl font-bold leading-tight text-dark-green sm:text-5xl">A day as a {title}</h1>
-          <p className="mt-3 max-w-xl text-lg leading-7 text-text-dark/80">{day.summary}</p>
-
+        <header className="overflow-hidden rounded-2xl border border-border bg-off-white">
+          <div className="bg-gradient-to-br from-dark-green via-green to-dark-green px-6 py-8 text-off-white sm:px-9 sm:py-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sage">A day in the life</p>
+            <h1 className="mt-3 font-heading text-4xl font-bold leading-tight sm:text-5xl">A day as a {title}</h1>
+            <p className="mt-3 max-w-xl text-lg leading-7 text-off-white/85">{day.summary}</p>
+            <div className="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
+              {day.schedule?.length > 0 && <span className="rounded-full bg-off-white/15 px-3 py-1.5">{day.schedule.length} moments · {day.schedule[0].time} to {day.schedule[day.schedule.length - 1].time}</span>}
+              {career?.salaryRange && <span className="rounded-full bg-off-white/15 px-3 py-1.5">{career.salaryRange}</span>}
+              {career?.market?.demand && <span className="rounded-full bg-off-white/15 px-3 py-1.5">{career.market.demand} demand</span>}
+            </div>
+          </div>
+          <div className="p-6 sm:p-9">
           {canPlay && (
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button size="lg" icon={Play} onClick={startDay}>Live this day</Button>
@@ -305,6 +324,7 @@ export default function DayInLife() {
             </ul>
           )}
           {splitBar}
+          </div>
         </header>
         {phase === "browse" && <Timeline day={day} activeIndex={activeIndex} setActiveIndex={setActiveIndex} />}
         {honestView}
@@ -332,6 +352,13 @@ export default function DayInLife() {
         ? `Partly a natural fit. A few parts of this day will ask you to stretch.`
         : `This job leans differently from how you chose to work today. That's useful to know, and not a verdict on you.`;
     const tired = meters.energy < 30;
+    const moments = picks.map((optIdx, i) => ({ sc: scenes[i], opt: scenes[i].options[optIdx] }));
+    const best = moments.reduce((a, b) => (b.opt.fx.results > a.opt.fx.results ? b : a), moments[0]);
+    const drain = moments.reduce((a, b) => (b.opt.fx.energy < a.opt.fx.energy ? b : a), moments[0]);
+    const bond = moments.reduce((a, b) => (b.opt.fx.trust > a.opt.fx.trust ? b : a), moments[0]);
+    const toolsUsed = [...new Set(moments.flatMap(({ sc }) => day.schedule.find((x) => x.title === sc.title)?.tools || []))].slice(0, 8);
+    const topLean = sorted[0][0];
+    const skillTips = { focus: "Strengthen your depth: pick one tool above and build a small project with it.", collab: "Strengthen communication: practise explaining your work to a non-expert in two minutes.", learn: "Lean into structured learning: follow a roadmap and certify one core skill." };
 
     return (
       <Layout>
@@ -339,7 +366,7 @@ export default function DayInLife() {
         <header className="anim-fade-up border border-border bg-off-white p-6 sm:p-9">
           <p className="type-eyebrow">Day complete · 6 PM</p>
           <div className="mt-3 flex flex-col gap-6 sm:flex-row sm:items-center">
-            <MatchRing value={fit} size={110} strokeWidth={9} valueClassName="text-2xl" />
+            <MatchRing value={fit} size={110} strokeWidth={9} valueClassName="text-2xl" label="fit with this day" />
             <div>
               <p className="type-meta">Your fit with this day</p>
               <h1 className="mt-1 font-heading text-3xl font-bold leading-tight text-dark-green sm:text-4xl">{persona.name}</h1>
@@ -353,6 +380,20 @@ export default function DayInLife() {
           {tired && <p className="mt-4 rounded-lg bg-coral/10 px-4 py-3 text-sm font-medium text-text-dark">You ended the day running on empty. Real jobs have days like this. Notice which choices drained you most below.</p>}
         </header>
 
+        <section className="grid gap-4 border-b border-border py-8 sm:grid-cols-3">
+          {[["Biggest win", best, `+${best.opt.fx.results} results`, "text-green"], ["Most draining", drain, `${drain.opt.fx.energy} energy`, "text-coral"], ["Trust builder", bond, `+${bond.opt.fx.trust} trust`, "text-dark-green"]].map(([label, m, stat, color]) => (
+            <Card key={label} elevated className="p-4">
+              <p className="type-meta">{label}</p>
+              <p className="mt-1 font-semibold text-dark-green">{m.sc.title} <span className="font-normal text-text-muted">· {m.sc.time}</span></p>
+              <p className="mt-1 text-sm text-text-muted">{m.opt.label}</p>
+              <p className={`mt-2 text-sm font-bold ${color}`}>{stat}</p>
+            </Card>
+          ))}
+        </section>
+        <section className="grid gap-4 border-b border-border py-8 sm:grid-cols-2">
+          <Card className="bg-light-sage/50"><p className="type-meta">What to do next</p><p className="mt-1 text-sm leading-6 text-text-dark">Your strongest lean was <b>{LEAN_META[topLean].label.toLowerCase()}</b>. {skillTips[topLean]}</p></Card>
+          {toolsUsed.length > 0 && <Card><p className="type-meta">Tools you touched today</p><div className="mt-2 flex flex-wrap gap-1.5">{toolsUsed.map((t) => <span key={t} className="rounded-full bg-light-sage px-2.5 py-1 text-xs font-semibold text-dark-green">{t}</span>)}</div></Card>}
+        </section>
         <section className="grid gap-8 border-b border-border py-10 lg:grid-cols-2">
           <div>
             <h2 className="type-section-title">Your instincts vs the real job</h2>
@@ -425,6 +466,12 @@ export default function DayInLife() {
             {METERS.map((m) => <MeterBar key={m.key} meter={m} value={meters[m.key]} delta={lastDeltas[m.key]} />)}
           </div>
         </Card>
+
+        <ol className="mb-4 flex gap-1.5 overflow-x-auto pb-1" aria-label="Moments of the day">
+          {scenes.map((sc, i) => (
+            <li key={sc.time + sc.title} className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${i === sceneIndex ? "bg-dark-green text-off-white" : picks[i] !== undefined ? "bg-light-sage text-dark-green" : "border border-border text-text-muted"}`}>{sc.time}</li>
+          ))}
+        </ol>
 
         {/* Scene */}
         <div ref={sceneRef} key={sceneIndex} className="scroll-mt-24">

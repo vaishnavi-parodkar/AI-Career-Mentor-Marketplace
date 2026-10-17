@@ -1,5 +1,6 @@
 import Navbar from "./Navbar";
 import MobileNav from "./MobileNav";
+import FloatingAssistant from "./FloatingAssistant";
 
 export default function Layout({ children }) {
   return (
@@ -9,6 +10,7 @@ export default function Layout({ children }) {
         {children}
       </main>
       <MobileNav />
+      <FloatingAssistant />
     </div>
   );
 }

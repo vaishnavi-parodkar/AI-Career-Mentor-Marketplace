@@ -9,6 +9,8 @@ import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import { useAssessment } from "../context/AssessmentContext";
 import { interviewApi } from "../services/interviewApi";
+import { progressApi } from "../services/platformApi";
+import { useLanguage } from "../i18n";
 import { enterFullscreen, exitFullscreen, isFullscreen, isFullscreenSupported, onFullscreenChange } from "../utils/fullscreen";
 import {
   interviewCareers,
@@ -43,6 +45,10 @@ export default function MockInterview() {
   const [source, setSource] = useState("bank");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const { language } = useLanguage();
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
+  const speechSupported = typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
   const [startError, setStartError] = useState("");
   const [remaining, setRemaining] = useState(DEFAULT_MINUTES * 60);
@@ -52,6 +58,9 @@ export default function MockInterview() {
   const [confirmEnd, setConfirmEnd] = useState(false);
 
   const fullscreenSupported = isFullscreenSupported();
+
+  // stop dictation when moving to another question or leaving the page
+  useEffect(() => () => recognitionRef.current?.stop(), [index]);
   const answersRef = useRef({});
   const deadlineRef = useRef(0);
   const finishedRef = useRef(false);
@@ -98,6 +107,22 @@ export default function MockInterview() {
     const result = await interviewApi.evaluate({ careerId, questions, answers: finalAnswers });
     const meta = { timed: true, secondsPerQuestion: minutes * 60, violations: violationsRef.current, timedOut: timedOutRef.current, endedBy };
     const saved = interviewApi.saveResult(user?.id, { ...result, meta });
+    // also keep a copy on the server so history and trends work across devices
+    progressApi
+      .saveInterview({
+        careerTitle: result.careerTitle,
+        overall: result.overall,
+        communication: result.communication,
+        technical: result.technical,
+        durationSec: 0,
+        violations: violationsRef.current,
+        source: result.source,
+        summary: result.summary,
+        strengths: result.strengths,
+        weaknesses: result.weaknesses,
+        recommendations: result.recommendations,
+      })
+      .catch(() => {});
     navigate(`/interview-feedback?id=${saved.id}`);
   }, [careerId, questions, minutes, user?.id, navigate]);
 
@@ -296,6 +321,31 @@ export default function MockInterview() {
   const words = countWords(answer);
   const answeredCount = questions.filter((q) => countWords(answers[q.id] || "") >= 3).length;
   const setAnswer = (value) => setAnswers((prev) => ({ ...prev, [question.id]: value }));
+
+  // Speech-to-text with the browser's Web Speech API (free, no API key; Chrome and Edge)
+  const toggleListening = () => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) return;
+    const rec = new Recognition();
+    rec.lang = { en: "en-IN", hi: "hi-IN", mr: "mr-IN" }[language] || "en-IN";
+    rec.continuous = true;
+    rec.interimResults = false;
+    const base = answers[question.id] ? `${answers[question.id].trim()} ` : "";
+    rec.onresult = (event) => {
+      let heard = "";
+      for (let i = 0; i < event.results.length; i += 1) heard += `${event.results[i][0].transcript} `;
+      setAnswer(`${base}${heard}`.trim());
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recognitionRef.current = rec;
+    rec.start();
+    setListening(true);
+  };
   const totalSeconds = minutes * 60;
   const low = remaining <= WARN_AT_SECONDS;
 
@@ -356,7 +406,21 @@ export default function MockInterview() {
           placeholder="Type your answer here..."
           className="focus-ring w-full rounded-xl border border-border bg-off-white p-4 text-base leading-7 text-text-dark outline-none focus:border-dark-green sm:text-sm"
         />
-        <p className="mt-2 text-right type-meta">{words} {words === 1 ? "word" : "words"} · aim for 60–150</p>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          {speechSupported ? (
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`focus-ring inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold ${listening ? "border-coral bg-coral text-off-white" : "border-dark-green text-dark-green hover:bg-light-sage"}`}
+              aria-pressed={listening}
+            >
+              <Mic size={16} aria-hidden="true" /> {listening ? "Stop dictation" : "Speak your answer"}
+            </button>
+          ) : (
+            <span className="type-meta">Speech input needs Chrome or Edge. Typing works everywhere.</span>
+          )}
+          <p className="text-right type-meta">{words} {words === 1 ? "word" : "words"} · aim for 60–150</p>
+        </div>
 
         <Button
           variant="primary"

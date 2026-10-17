@@ -83,4 +83,25 @@ public class Mentor {
     public void setAvailable(Boolean available) {
         this.available = available;
     }
+
+    // ---- marketplace fields (all optional; added by ddl-auto=update) ----
+    @Column(unique = true)
+    public String slug;
+    public String profession;
+    public String category;          // tech | business | people
+    @Column(length = 600)
+    public String skills;            // comma separated
+    public String languages;         // comma separated
+    public Integer hourlyRate;       // INR per hour
+    public Integer yearsExperience;
+    @Column(columnDefinition = "TEXT")
+    public String bio;
+    public String company;
+    public String avatarColor;
+    @Column(length = 600)
+    public String topics;            // comma separated
+    public String availableDays;     // e.g. "MON,TUE,WED,THU,FRI"
+    @Column(columnDefinition = "TEXT")
+    public String personaPrompt;
+    public String careerId;
 }

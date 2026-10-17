@@ -1,3 +1,5 @@
+import { validatePassword } from "../utils/password";
+import PasswordChecklist from "../components/PasswordChecklist";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Input from "../components/Input";
@@ -23,7 +25,7 @@ export default function Signup() {
     const errs = {};
     if (!form.fullName.trim()) errs.fullName = "Full name is required.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Enter a valid email address.";
-    if (form.password.length < 8) errs.password = "Password must be at least 8 characters.";
+    { const pw = validatePassword(form.password); if (pw) errs.password = pw; }
     if (form.confirm !== form.password) errs.confirm = "Passwords do not match.";
     if (!agree) errs.agree = "You must accept the Terms & Conditions.";
     setErrors(errs);
@@ -104,11 +106,12 @@ export default function Signup() {
             <Input
               label="Password"
               type="password"
-              placeholder="At least 8 characters"
+              placeholder="Create a strong password"
               value={form.password}
               onChange={update("password")}
               error={errors.password}
             />
+            <PasswordChecklist password={form.password} />
             <Input
               label="Confirm Password"
               type="password"

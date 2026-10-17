@@ -12,6 +12,8 @@ import BadgeShelf from "../components/BadgeShelf";
 import { computeBadges } from "../utils/badges";
 import { useAuth } from "../context/AuthContext";
 import { getProfileCompletion } from "../utils/profile";
+import { profileInsights } from "../utils/insights";
+import { Target, Briefcase, GraduationCap, Lightbulb } from "lucide-react";
 
 const STEPS = ["Education", "Skills & experience", "Interests", "Goals"];
 const statusOptions = ["Student", "Recent graduate", "Working professional", "Between jobs", "Switching careers"];
@@ -72,6 +74,7 @@ export default function CareerProfile() {
     completion,
     roadmaps,
     interviews: interviewApi.getHistory(user?.id),
+    profile: form,
   });
 
   useEffect(() => {
@@ -185,16 +188,44 @@ export default function CareerProfile() {
       <main className={`mx-auto w-full px-4 pb-16 pt-8 transition-opacity duration-500 motion-reduce:transition-none sm:px-6 sm:pt-12 ${visible ? "opacity-100" : "opacity-0"}`}>
       <div className={`mx-auto ${editing ? "max-w-lg" : "max-w-3xl"}`}>
         {loading ? <p className="py-16 text-center text-text-muted" role="status">Loading your profile…</p> : !editing ? <>
-          <p className="type-eyebrow">{completion.isComplete ? "Your Pathwise details" : "Welcome to Pathwise"}</p>
-          <div className="mt-3 flex items-center gap-4">
-            <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-dark-green font-heading text-xl font-bold text-off-white">{profileInitial}</span>
-            <div className="min-w-0">
-              <h1 className="type-page-title">{completion.isComplete ? profileTitle : displayName ? `Hi ${displayName.split(" ")[0]}, let’s finish your profile` : "Let’s finish your profile"}</h1>
-              {user?.email && <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-text-muted"><Mail size={14} aria-hidden="true" />{user.email}</p>}
+          <div className="overflow-hidden rounded-2xl bg-dark-green text-off-white">
+            <div className="h-16 bg-gradient-to-r from-green via-sage/60 to-dark-green" aria-hidden="true" />
+            <div className="-mt-9 flex flex-col gap-4 px-5 pb-6 sm:flex-row sm:items-end sm:px-7">
+              <span aria-hidden="true" className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-full border-4 border-dark-green bg-sage font-heading text-3xl font-bold text-dark-green">{profileInitial}</span>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-heading text-2xl font-bold sm:text-3xl">{displayName || "Your profile"}</h1>
+                <p className="mt-0.5 text-sm text-off-white/80">{[form.currentStatus, form.targetRole && `Aiming for ${form.targetRole}`].filter(Boolean).join(" · ") || "Add your status and target role"}</p>
+                {user?.email && <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-off-white/70"><Mail size={13} aria-hidden="true" />{user.email}</p>}
+              </div>
+              <div className="flex gap-2 text-center">
+                {[[form.skills.length, "Skills"], [form.interests.length, "Interests"], [`${completion.percent}%`, "Complete"]].map(([v, l]) => <div key={l} className="min-w-[4.2rem] rounded-xl bg-off-white/10 px-3 py-2"><p className="font-heading text-lg font-bold">{v}</p><p className="text-[11px] uppercase tracking-wide text-off-white/70">{l}</p></div>)}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 border-t border-off-white/10 px-5 py-3 text-xs font-semibold sm:px-7">
+              {form.qualification && <span className="inline-flex items-center gap-1.5 rounded-full bg-off-white/10 px-3 py-1"><GraduationCap size={13} aria-hidden="true" />{formatValue(form.qualification)}{form.gradYear ? ` · ${form.gradYear}` : ""}</span>}
+              {form.experienceLevel && <span className="inline-flex items-center gap-1.5 rounded-full bg-off-white/10 px-3 py-1"><Briefcase size={13} aria-hidden="true" />{form.experienceLevel}</span>}
+              {form.goal && <span className="inline-flex items-center gap-1.5 rounded-full bg-off-white/10 px-3 py-1"><Target size={13} aria-hidden="true" />{formatValue(form.goal)}</span>}
             </div>
           </div>
+          {form.skills.length > 0 && (() => { const pi = profileInsights(form); return (
+            <Card elevated className="mt-5 p-5 sm:p-6">
+              <div className="flex items-center gap-2"><Sparkles size={18} className="text-dark-green" aria-hidden="true" /><h2 className="font-heading text-xl font-bold text-dark-green">AI profile insights</h2></div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="type-meta">Profile strength</p>
+                  <p className="font-heading text-3xl font-bold text-dark-green">{pi.strength}%</p>
+                  <ProgressBar value={pi.strength} max={100} className="mt-2" label="Profile strength" />
+                </div>
+                <div>
+                  <p className="type-meta">Closest skill fit today</p>
+                  <p className="font-semibold text-text-dark">{pi.best.title} <span className="text-text-muted">· {pi.best.fit}% of core skills</span></p>
+                  <p className="mt-1 text-sm text-text-muted">{pi.best.have.length ? `You have ${pi.best.have.join(", ")}. ` : ""}{pi.best.skills.filter((x) => !pi.best.have.includes(x)).length ? `Next: ${pi.best.skills.filter((x) => !pi.best.have.includes(x)).slice(0, 3).join(", ")}.` : "You cover all core skills."}</p>
+                </div>
+              </div>
+              {pi.tips.length > 0 && <ul className="mt-4 flex flex-col gap-2">{pi.tips.map((t) => <li key={t} className="flex gap-2.5 rounded-lg bg-light-sage/60 px-3 py-2 text-sm text-text-dark"><Lightbulb size={16} className="mt-0.5 shrink-0 text-dark-green" aria-hidden="true" />{t}</li>)}</ul>}
+            </Card>); })()}
 
-          <Card elevated className="mt-8 p-5 sm:p-6">
+          <Card elevated className="mt-5 p-5 sm:p-6">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="type-meta">Profile completion</p>

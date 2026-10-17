@@ -6,6 +6,8 @@ import ProgressBar from "../components/ProgressBar";
 import MatchRing from "../components/MatchRing";
 import { roadmapApi, skillAssessmentApi } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { progressApi } from "../services/platformApi";
+import PlatformProgress from "../components/PlatformProgress";
 import { useAssessment } from "../context/AssessmentContext";
 
 export default function ProgressDashboard() {
@@ -107,49 +109,12 @@ export default function ProgressDashboard() {
     loadSkillsProgress();
   }, [user?.id, selectedCareerId]);
 
+  // Career readiness comes from one place: the server's weighted score (same number as the report).
   useEffect(() => {
-    const loadCareerReadiness = async () => {
-      if (!user?.id || !selectedCareerId) return;
-
-      const response = await skillAssessmentApi.getSkillGap(
-        user.id,
-        selectedCareerId
-      );
-
-      if (!response.success) return;
-
-      const skills = Array.isArray(response.skills)
-        ? response.skills
-        : [];
-
-      if (skills.length === 0) {
-        setReadiness(0);
-        return;
-      }
-
-      const result = await skillAssessmentApi.analyzeSkillGap({
-        userId: user.id,
-        careerId: selectedCareerId,
-        skills: skills.map((skill) => ({
-          name: skill.skillName ?? skill.name,
-          value: Number(skill.userScore) * 20,
-        })),
-        resumeContext: "",
-      });
-
-      if (!result.success) return;
-
-      const overallReadiness = Number(result.analysis?.overallReadiness);
-
-      setReadiness(
-        Number.isFinite(overallReadiness)
-          ? Math.max(0, Math.min(100, Math.round(overallReadiness)))
-          : 0
-      );
-    };
-
-    loadCareerReadiness();
-  }, [user?.id, selectedCareerId]);
+    let active = true;
+    progressApi.dashboard().then((d) => { if (active) setReadiness(Math.max(0, Math.min(100, Math.round(Number(d?.readinessScore) || 0)))); }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.id]);
 
   return (
     <Layout>
@@ -170,6 +135,7 @@ export default function ProgressDashboard() {
             value={readiness}
             size={110}
             strokeWidth={8}
+            label="career readiness"
           />
 
           <div>
@@ -178,7 +144,7 @@ export default function ProgressDashboard() {
             </p>
 
             <p className="mt-1 type-supporting">
-              You&apos;re making steady progress.
+              {readiness >= 75 ? "You look interview-ready." : readiness >= 40 ? "Good momentum. Keep closing gaps." : "Just getting started. Finish a roadmap step or interview to move this."}
             </p>
           </div>
         </Card>
@@ -234,6 +200,7 @@ export default function ProgressDashboard() {
             : "Complete your roadmap and continue improving your skills to build your career readiness."}
         </p>
       </Card>
+      <PlatformProgress />
     </Layout>
   );
 }

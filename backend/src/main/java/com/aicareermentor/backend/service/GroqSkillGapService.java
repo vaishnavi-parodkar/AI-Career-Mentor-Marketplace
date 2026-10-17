@@ -33,9 +33,13 @@ public class GroqSkillGapService {
     @Value("${groq.model}")
     private String groqModel;
 
-    public GroqSkillGapService(ObjectMapper objectMapper) {
+    private final com.aicareermentor.backend.ai.AiGatewayService gateway;
+
+    public GroqSkillGapService(ObjectMapper objectMapper,
+                               com.aicareermentor.backend.ai.AiGatewayService gateway) {
         this.restClient = RestClient.builder().build();
         this.objectMapper = objectMapper;
+        this.gateway = gateway;
     }
 
     public SkillGapAnalysisResponse analyze(
@@ -43,10 +47,8 @@ public class GroqSkillGapService {
             List<String> requiredSkills,
             SkillGapAnalyzeRequest request) {
 
-        if (groqApiKey == null || groqApiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "GROQ_API_KEY is not configured. Check your .env file."
-            );
+        if (!gateway.isAvailable()) {
+            throw new com.aicareermentor.backend.ai.AiUnavailableException("No AI provider is configured.");
         }
 
         String userSkillsText = buildUserSkillsText(request.skills());
@@ -188,7 +190,8 @@ public class GroqSkillGapService {
                 lastFailure = e;
 
                 boolean schemaMismatch = e.getMessage() != null
-                        && e.getMessage().contains("json_validate_failed");
+                        && (e.getMessage().contains("json_validate_failed")
+                                || e.getMessage().contains("skill entries"));
 
                 boolean rateLimited = e.getMessage() != null
                         && (e.getMessage().contains("rate_limit_exceeded")
@@ -222,45 +225,7 @@ public class GroqSkillGapService {
 
         try {
 
-            JsonNode response = restClient
-                    .post()
-                    .uri(groqApiUrl)
-                    .header(
-                            HttpHeaders.AUTHORIZATION,
-                            "Bearer " + groqApiKey
-                    )
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(requestBody)
-                    .retrieve()
-                    .body(JsonNode.class);
-
-            if (response == null) {
-                throw new IllegalStateException(
-                        "Groq returned an empty response."
-                );
-            }
-
-            JsonNode contentNode = response
-                    .path("choices")
-                    .path(0)
-                    .path("message")
-                    .path("content");
-
-            if (contentNode.isMissingNode()
-                    || contentNode.isNull()) {
-
-                throw new IllegalStateException(
-                        "Groq response did not contain analysis content."
-                );
-            }
-
-            String content = contentNode.asText();
-
-            if (content == null || content.isBlank()) {
-                throw new IllegalStateException(
-                        "Groq returned empty analysis content."
-                );
-            }
+            String content = gateway.chatFromOpenAiBody("skill-gap", requestBody);
 
             SkillGapAnalysisResponse analysis = objectMapper.readValue(
                     content,
@@ -514,11 +479,9 @@ public class GroqSkillGapService {
         SkillGapAnalysisResponse analysis,
         String resumeContext) {
 
-    if (groqApiKey == null || groqApiKey.isBlank()) {
-        throw new IllegalStateException(
-                "GROQ_API_KEY is not configured."
-        );
-    }
+    if (!gateway.isAvailable()) {
+            throw new com.aicareermentor.backend.ai.AiUnavailableException("No AI provider is configured.");
+        }
 
     String context =
             resumeContext == null || resumeContext.isBlank()
@@ -631,45 +594,7 @@ public class GroqSkillGapService {
 
     try {
 
-        JsonNode response = restClient
-                .post()
-                .uri(groqApiUrl)
-                .header(
-                        HttpHeaders.AUTHORIZATION,
-                        "Bearer " + groqApiKey
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(JsonNode.class);
-
-        if (response == null) {
-            throw new IllegalStateException(
-                    "Groq returned an empty roadmap response."
-            );
-        }
-
-        JsonNode contentNode = response
-                .path("choices")
-                .path(0)
-                .path("message")
-                .path("content");
-
-        if (contentNode.isMissingNode()
-                || contentNode.isNull()) {
-
-            throw new IllegalStateException(
-                    "Groq response did not contain roadmap content."
-            );
-        }
-
-        String content = contentNode.asText();
-
-        if (content == null || content.isBlank()) {
-            throw new IllegalStateException(
-                    "Groq returned empty roadmap content."
-            );
-        }
+        String content = gateway.chatFromOpenAiBody("roadmap", requestBody);
 
         return objectMapper.readValue(
                 content,

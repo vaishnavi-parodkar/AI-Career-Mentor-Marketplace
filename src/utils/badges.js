@@ -16,7 +16,7 @@ const stepStats = (roadmaps) => {
   return { total, done };
 };
 
-export function computeBadges({ completion, roadmaps = [], interviews = [] }) {
+export function computeBadges({ completion, roadmaps = [], interviews = [], profile = {} }) {
   const withSteps = roadmaps.filter((r) => r.steps?.length > 0);
   const { total, done } = stepStats(withSteps);
 
@@ -97,5 +97,13 @@ export function computeBadges({ completion, roadmaps = [], interviews = [] }) {
       hint: bestInterview ? `Your best is ${bestInterview}%.` : "Take a mock interview and aim for 80%+.",
       earned: bestInterview >= 80,
     },
+    { id: "skill-collector", icon: "sparkles", title: "Skill Collector", description: "Listed 5 or more skills.", hint: `Add skills to your profile (${profile.skills?.length || 0}/5).`, earned: (profile.skills?.length || 0) >= 5 },
+    { id: "storyteller", icon: "pen", title: "Storyteller", description: "Wrote your About section.", hint: "Add a short About you to your profile.", earned: !!profile.about?.trim() },
+    { id: "goal-setter", icon: "compass", title: "Goal Setter", description: "Set a target role.", hint: "Add a target role to your profile.", earned: !!profile.targetRole?.trim() },
+    { id: "explorer", icon: "compass", title: "Explorer", description: "Picked 3 or more interest areas.", hint: `Select interests (${profile.interests?.length || 0}/3).`, earned: (profile.interests?.length || 0) >= 3 },
+    { id: "momentum", icon: "steps", title: "Momentum", description: "Completed 5 roadmap steps.", hint: `${done} of 5 steps done.`, earned: done >= 5 },
+    { id: "double-digits", icon: "flag", title: "Double Digits", description: "Completed 10 roadmap steps.", hint: `${done} of 10 steps done.`, earned: done >= 10 },
+    { id: "multi-track", icon: "layers", title: "Multi-Track", description: "Created 2 or more roadmaps.", hint: "Generate roadmaps for two careers.", earned: withSteps.length >= 2 },
+    { id: "practice-regular", icon: "mic", title: "Practice Regular", description: "Finished 3 mock interviews.", hint: `${interviews.length} of 3 mock interviews done.`, earned: interviews.length >= 3 },
   ];
 }

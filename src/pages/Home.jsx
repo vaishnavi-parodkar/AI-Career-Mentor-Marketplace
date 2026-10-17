@@ -9,6 +9,7 @@ import Loader from "../components/Loader";
 import { careerApi, profileApi } from "../services/api";
 import { getProfileCompletion } from "../utils/profile";
 import { useAuth } from "../context/AuthContext";
+import NextActions from "../components/NextActions";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -92,6 +93,7 @@ export default function Home() {
 
   return (
     <Layout>
+      <NextActions />
       {profileIncomplete && (
         <section className="mb-8">
           <Card className="flex flex-col items-start gap-4 border-dark-green/20 bg-light-sage/60 p-5 text-left sm:flex-row sm:items-center">

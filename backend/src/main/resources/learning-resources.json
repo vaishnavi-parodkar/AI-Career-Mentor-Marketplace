@@ -1,0 +1,275 @@
+{
+ "data-analyst": [
+  {
+   "type": "course",
+   "title": "SQL Tutorial (interactive)",
+   "provider": "SQLBolt",
+   "url": "https://sqlbolt.com/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "SQL"
+  },
+  {
+   "type": "course",
+   "title": "Data Analysis with Python",
+   "provider": "freeCodeCamp",
+   "url": "https://www.freecodecamp.org/learn/data-analysis-with-python/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Python,Statistics"
+  },
+  {
+   "type": "course",
+   "title": "Kaggle Learn: Pandas, Data Viz, SQL",
+   "provider": "Kaggle",
+   "url": "https://www.kaggle.com/learn",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Python,Data Visualization,SQL"
+  },
+  {
+   "type": "certification",
+   "title": "Google Data Analytics Professional Certificate",
+   "provider": "Coursera",
+   "url": "https://www.coursera.org/professional-certificates/google-data-analytics",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Excel,SQL,Data Visualization"
+  },
+  {
+   "type": "certification",
+   "title": "Microsoft Power BI Data Analyst (PL-300)",
+   "provider": "Microsoft",
+   "url": "https://learn.microsoft.com/en-us/credentials/certifications/data-analyst-associate/",
+   "free": false,
+   "level": "Intermediate",
+   "skills": "Power BI,Data Visualization"
+  },
+  {
+   "type": "project",
+   "title": "Build a sales dashboard from a public dataset",
+   "provider": "Self-paced",
+   "url": "https://www.kaggle.com/datasets",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Data Visualization,Excel"
+  }
+ ],
+ "software-developer": [
+  {
+   "type": "course",
+   "title": "CS50: Introduction to Computer Science",
+   "provider": "Harvard",
+   "url": "https://cs50.harvard.edu/x/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Data Structures"
+  },
+  {
+   "type": "course",
+   "title": "Spring Guides",
+   "provider": "Spring",
+   "url": "https://spring.io/guides",
+   "free": true,
+   "level": "Intermediate",
+   "skills": "Spring Boot,Java,REST APIs"
+  },
+  {
+   "type": "course",
+   "title": "Full-stack curriculum",
+   "provider": "The Odin Project",
+   "url": "https://www.theodinproject.com/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "JavaScript,React,Git"
+  },
+  {
+   "type": "course",
+   "title": "NPTEL computer science courses",
+   "provider": "NPTEL",
+   "url": "https://nptel.ac.in/",
+   "free": true,
+   "level": "Intermediate",
+   "skills": "Data Structures,System Design"
+  },
+  {
+   "type": "certification",
+   "title": "AWS Certified Cloud Practitioner",
+   "provider": "AWS",
+   "url": "https://aws.amazon.com/certification/certified-cloud-practitioner/",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Cloud"
+  },
+  {
+   "type": "project",
+   "title": "Build a REST API with auth and a React frontend",
+   "provider": "Self-paced",
+   "url": "https://spring.io/guides",
+   "free": true,
+   "level": "Intermediate",
+   "skills": "Spring Boot,React,SQL"
+  }
+ ],
+ "project-manager": [
+  {
+   "type": "course",
+   "title": "Agile resources and tutorials",
+   "provider": "Atlassian",
+   "url": "https://www.atlassian.com/agile",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Agile"
+  },
+  {
+   "type": "certification",
+   "title": "Certified Associate in Project Management (CAPM)",
+   "provider": "PMI",
+   "url": "https://www.pmi.org/certifications/certified-associate-capm",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Planning"
+  },
+  {
+   "type": "certification",
+   "title": "Professional Scrum Master I",
+   "provider": "Scrum.org",
+   "url": "https://www.scrum.org/assessments/professional-scrum-master-i-certification",
+   "free": false,
+   "level": "Intermediate",
+   "skills": "Scrum"
+  },
+  {
+   "type": "certification",
+   "title": "Google Project Management Certificate",
+   "provider": "Coursera",
+   "url": "https://www.coursera.org/professional-certificates/google-project-management",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Planning,Communication"
+  }
+ ],
+ "product-manager": [
+  {
+   "type": "course",
+   "title": "Product management guide",
+   "provider": "Atlassian",
+   "url": "https://www.atlassian.com/agile/product-management",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Product Strategy"
+  },
+  {
+   "type": "course",
+   "title": "Mind the Product articles and talks",
+   "provider": "Mind the Product",
+   "url": "https://www.mindtheproduct.com/",
+   "free": true,
+   "level": "Intermediate",
+   "skills": "Product Strategy,Roadmapping"
+  },
+  {
+   "type": "certification",
+   "title": "Certified Scrum Product Owner",
+   "provider": "Scrum Alliance",
+   "url": "https://www.scrumalliance.org/get-certified/product-owner-track/certified-scrum-product-owner",
+   "free": false,
+   "level": "Intermediate",
+   "skills": "Agile,Prioritization"
+  },
+  {
+   "type": "project",
+   "title": "Write a PRD and metrics plan for an app you use daily",
+   "provider": "Self-paced",
+   "url": "",
+   "free": true,
+   "level": "Beginner",
+   "skills": "User Research,Analytics"
+  }
+ ],
+ "hr-specialist": [
+  {
+   "type": "certification",
+   "title": "SHRM-CP",
+   "provider": "SHRM",
+   "url": "https://www.shrm.org/credentials/certification",
+   "free": false,
+   "level": "Intermediate",
+   "skills": "Employee Relations"
+  },
+  {
+   "type": "certification",
+   "title": "aPHR",
+   "provider": "HRCI",
+   "url": "https://www.hrci.org/certifications/aphr",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Recruitment,Onboarding"
+  },
+  {
+   "type": "course",
+   "title": "NPTEL management and HR courses",
+   "provider": "NPTEL",
+   "url": "https://nptel.ac.in/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Communication"
+  },
+  {
+   "type": "project",
+   "title": "Design an onboarding plan for a 20-person startup",
+   "provider": "Self-paced",
+   "url": "",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Onboarding"
+  }
+ ],
+ "cybersecurity-analyst": [
+  {
+   "type": "course",
+   "title": "Hands-on security rooms",
+   "provider": "TryHackMe",
+   "url": "https://tryhackme.com/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "Networking,Linux,Threat Detection"
+  },
+  {
+   "type": "course",
+   "title": "OWASP Top Ten",
+   "provider": "OWASP",
+   "url": "https://owasp.org/www-project-top-ten/",
+   "free": true,
+   "level": "Beginner",
+   "skills": "OWASP"
+  },
+  {
+   "type": "certification",
+   "title": "Google Cybersecurity Certificate",
+   "provider": "Coursera",
+   "url": "https://www.coursera.org/professional-certificates/google-cybersecurity",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Networking,Linux,SIEM"
+  },
+  {
+   "type": "certification",
+   "title": "CompTIA Security+",
+   "provider": "CompTIA",
+   "url": "https://www.comptia.org/certifications/security",
+   "free": false,
+   "level": "Intermediate",
+   "skills": "Security+"
+  },
+  {
+   "type": "certification",
+   "title": "ISC2 Certified in Cybersecurity (CC)",
+   "provider": "ISC2",
+   "url": "https://www.isc2.org/certifications/cc",
+   "free": false,
+   "level": "Beginner",
+   "skills": "Networking"
+  }
+ ]
+}

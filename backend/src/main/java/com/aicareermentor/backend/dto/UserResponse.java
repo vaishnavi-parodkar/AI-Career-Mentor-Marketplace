@@ -9,10 +9,25 @@ public class UserResponse {
     public UserResponse() {
     }
 
+    private String role = "USER";
+
     public UserResponse(Long id, String name, String email) {
         this.id = id;
         this.name = name;
         this.email = email;
+    }
+
+    public UserResponse(Long id, String name, String email, String role) {
+        this(id, name, email);
+        this.role = role == null ? "USER" : role;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public Long getId() {

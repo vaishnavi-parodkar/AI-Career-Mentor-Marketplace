@@ -3,9 +3,10 @@ export default function MatchRing({
   size = 56,
   strokeWidth = 5,
   valueClassName = "text-sm",
+  label = "career match",
 }) {
   const numericValue = Number(value);
-  const displayValue = Number.isFinite(numericValue) ? numericValue : 0;
+  const displayValue = Number.isFinite(numericValue) ? Math.round(Math.max(0, Math.min(100, numericValue))) : 0;
   const progressValue = Math.max(0, Math.min(displayValue, 100));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -17,7 +18,7 @@ export default function MatchRing({
       className="relative shrink-0"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`${displayValue}% career match`}
+      aria-label={`${displayValue}% ${label}`}
     >
       <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
         <circle
