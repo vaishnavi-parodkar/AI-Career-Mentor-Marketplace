@@ -29,11 +29,6 @@ const formatClock = (minutes) => {
 
 const METER_ICON = { energy: Zap, results: Target, trust: Users };
 const METER_COLOR = { energy: "bg-sage", results: "bg-green", trust: "bg-coral" };
-const SCENE_TONE = {
-  focus: "from-dark-green via-green to-[#123b36]",
-  collab: "from-[#713f3a] via-coral to-[#9b5b51]",
-  learn: "from-[#53633d] via-sage to-[#8c9f61]",
-};
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -441,7 +436,6 @@ export default function DayInLife() {
   const meta = dayTypeMeta[scene.type];
   const chosen = answered ? scene.options[chosenIndex] : null;
   const isLast = sceneIndex === scenes.length - 1;
-  const score = Math.max(0, meters.results);
 
   return (
     <Layout>
@@ -452,15 +446,13 @@ export default function DayInLife() {
         </div>
 
         {/* Dashboard: clock, sun track, meters */}
-        <Card elevated className="mb-5 overflow-hidden p-0">
-          <div className={`relative overflow-hidden bg-gradient-to-br ${SCENE_TONE[scene.type]} px-5 py-5 text-off-white sm:px-7`}>
-            <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+        <Card elevated className="mb-5 p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">A day as a {title}</p>
-              <p className="mt-1 font-heading text-4xl font-bold tabular-nums text-white" aria-live="polite" aria-label={`Time: ${scene.time}`}>{formatClock(clock)}</p>
+              <p className="type-meta">A day as a {title}</p>
+              <p className="font-heading text-4xl font-bold tabular-nums text-dark-green" aria-live="polite" aria-label={`Time: ${scene.time}`}>{formatClock(clock)}</p>
             </div>
-            <div className="text-right"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Decision points</p><p className="font-heading text-3xl font-bold text-white">{score}</p></div>
+            <p className="text-right type-meta">Moment {sceneIndex + 1} of {scenes.length}</p>
           </div>
           <div className="relative mt-4 h-6" aria-hidden="true">
             <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-light-sage" />
@@ -470,9 +462,7 @@ export default function DayInLife() {
             ))}
             <Sun size={20} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-off-white text-coral transition-all duration-700" style={{ left: `${dayProgress}%` }} />
           </div>
-          <div className="mt-4 flex items-center justify-between gap-4 text-xs font-semibold text-white/80"><span>Moment {sceneIndex + 1} of {scenes.length}</span><span>{Math.round(dayProgress)}% of the day</span></div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 p-5 sm:p-7">
+          <div className="mt-4 grid grid-cols-3 gap-4">
             {METERS.map((m) => <MeterBar key={m.key} meter={m} value={meters[m.key]} delta={lastDeltas[m.key]} />)}
           </div>
         </Card>
@@ -485,8 +475,7 @@ export default function DayInLife() {
 
         {/* Scene */}
         <div ref={sceneRef} key={sceneIndex} className="scroll-mt-24">
-          <Card elevated className="anim-fade-up relative overflow-hidden p-5 sm:p-8">
-            <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${SCENE_TONE[scene.type]}`} />
+          <Card elevated className="anim-fade-up p-5 sm:p-7">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-dark-green px-3 py-1 text-xs font-bold text-off-white">{scene.time}</span>
               <span className="flex items-center gap-1.5 rounded-full bg-light-sage px-3 py-1 text-xs font-semibold text-dark-green"><span className={`h-2 w-2 rounded-full ${meta.dot}`} />{meta.label}</span>
@@ -507,7 +496,7 @@ export default function DayInLife() {
               </p>
             )}
 
-            <div className="mb-3 mt-7 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-text-muted">{answered ? "You chose:" : "What do you do?"} {!answered && <span className="font-normal">(press 1, 2 or 3)</span>}</p><span className="rounded-full bg-cream px-3 py-1 text-xs font-bold text-text-muted">Choose your instinct</span></div>
+            <p className="mb-3 mt-6 text-sm font-semibold text-text-muted">{answered ? "You chose:" : "What do you do?"} {!answered && <span className="font-normal">(press 1, 2 or 3)</span>}</p>
             <div className="flex flex-col gap-3" role="group" aria-label="Your options">
               {scene.options.map((opt, i) => {
                 const isChosen = chosenIndex === i;

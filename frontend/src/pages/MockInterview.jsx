@@ -211,7 +211,7 @@ export default function MockInterview() {
   if (stage === "setup") {
     return (
       <Layout>
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-xl">
           <div className="mb-7 text-center">
             <span className="mb-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-light-sage px-3 py-1.5 text-sm font-semibold text-dark-green">
               <Mic size={14} aria-hidden="true" /> Mock interview
@@ -351,7 +351,7 @@ export default function MockInterview() {
 
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto bg-cream">
-      <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col px-4 py-5 sm:px-6 sm:py-8 lg:px-10">
+      <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-4 py-5 sm:px-6 sm:py-8">
         <div className="mb-5 flex items-center justify-between gap-3">
           <span className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-light-sage px-3 py-1.5 text-sm font-semibold text-dark-green">
             <Mic size={14} aria-hidden="true" /> {career.title} interview

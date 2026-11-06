@@ -21,19 +21,9 @@ import java.util.*;
 @Service
 public class AiChatService {
 
-    private static final Map<String, String> LANGUAGES = Map.ofEntries(
-            Map.entry("en", "English"),
-            Map.entry("hi", "Hindi (Devanagari script)"),
-            Map.entry("hi-latn", "Hindi written in Roman Latin script"),
-            Map.entry("mr", "Marathi (Devanagari script)"),
-            Map.entry("mr-latn", "Marathi written in Roman Latin script"),
-            Map.entry("mr-deva", "Marathi written in Devanagari script"),
-            Map.entry("kok-latn", "Konkani written in Roman Latin script"),
-            Map.entry("ta", "Tamil"),
-            Map.entry("te", "Telugu"),
-            Map.entry("bn", "Bengali"),
-            Map.entry("gu", "Gujarati"),
-            Map.entry("kn", "Kannada"));
+    private static final Map<String, String> LANGUAGES = Map.of(
+            "en", "English", "hi", "Hindi", "mr", "Marathi", "ta", "Tamil", "te", "Telugu",
+            "bn", "Bengali", "gu", "Gujarati", "kn", "Kannada");
 
     private final AiGatewayService ai;
     private final EmbeddingService embeddings;
@@ -63,7 +53,6 @@ public class AiChatService {
 
         Mentor mentor = findMentor(mentorKey);
         if (mentor == null) throw new IllegalArgumentException("Mentor not found.");
-        String mentorLanguage = "en".equalsIgnoreCase(language) ? "en" : "hi-latn";
 
         // Retrieve the most relevant approved mentor-provided notes
         List<MentorContent> notes = contentRepository.findByMentorIdAndApprovedTrue(mentor.getId());
@@ -85,10 +74,7 @@ public class AiChatService {
                 ? mentor.personaPrompt
                 : "You are " + mentor.getName() + ", a " + mentor.getSpecialization() + " mentor.");
         system.append("\nYou are an AI mentor persona, not a real person; say so if asked.");
-        system.append("\nReply only in ").append(languageName(mentorLanguage))
-                .append(". Continue using this exact language and script for every reply, even when the learner types in English or another script.")
-                .append(" Do not switch to English unless English is selected. If Roman Hindi is selected, use natural Hindi words written only with English letters; do not use Devanagari.")
-                .append(" Do not use Markdown, asterisks, tables, or formatting markers. Use short labeled points instead. Keep answers under 180 words, practical and specific.");
+        system.append("\nReply in ").append(languageName(language)).append(". Keep answers under 180 words, practical and specific.");
         String ctx = userContext.describe(userId);
         if (!ctx.isBlank()) system.append("\nAbout the learner:\n").append(ctx);
         if (!top.isEmpty()) {
@@ -103,7 +89,7 @@ public class AiChatService {
             out.put("reply", r.content());
             out.put("provider", r.provider());
         } catch (AiUnavailableException e) {
-            out.put("reply", offlineMentorReply(mentor, message, top, mentorLanguage));
+            out.put("reply", offlineMentorReply(mentor, message, top));
             out.put("provider", "offline");
         }
         List<String> used = new ArrayList<>();
@@ -160,10 +146,7 @@ public class AiChatService {
         return history.subList(from, history.size());
     }
 
-    private String offlineMentorReply(Mentor mentor, String message, List<MentorContent> notes, String language) {
-        if ("hi-latn".equalsIgnoreCase(language)) {
-            return "Aapke liye agla kadam:\n\n- Apne target role ko clearly define karein.\n- Ek important skill chuniye aur us par chhota project banaiye.\n- Progress ko roadmap par track karein.\n\nAI service abhi busy hai. Thodi der baad dobara try karein.";
-        }
+    private String offlineMentorReply(Mentor mentor, String message, List<MentorContent> notes) {
         String text = message.toLowerCase();
         String base;
         if (!notes.isEmpty()) {

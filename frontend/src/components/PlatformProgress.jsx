@@ -5,7 +5,6 @@ import Button from "./Button";
 import NextActions from "./NextActions";
 import { progressApi, reportApi } from "../services/platformApi";
 import { useLanguage } from "../i18n";
-import FormattedText from "./FormattedText";
 
 /** Server-side progress: readiness score, tracked skill proficiency, badges, interviews, behaviour, reports. */
 export default function PlatformProgress() {
@@ -113,7 +112,7 @@ export default function PlatformProgress() {
               ))}
             </div>
           )}
-          <FormattedText className="mt-4 text-sm text-text-dark">{behavior.narrative}</FormattedText>
+          <p className="mt-4 whitespace-pre-wrap text-sm text-text-dark">{behavior.narrative}</p>
         </Card>
       )}
 

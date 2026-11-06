@@ -17,10 +17,15 @@ export default function MentorMarketplace() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
+  const [language, setLanguage] = useState("");
+  const [maxRate, setMaxRate] = useState("");
+  const [minRating, setMinRating] = useState("");
+  const [availableOnly, setAvailableOnly] = useState(false);
+
   const run = () => {
     setLoading(true);
     mentorApi
-      .getAll({ q: query, category })
+      .getAll({ q: query, category, language, maxRate, minRating, availableOnly: availableOnly || undefined })
       .then(setMentors)
       .finally(() => setLoading(false));
   };
@@ -37,7 +42,7 @@ export default function MentorMarketplace() {
       <div className="mb-7">
         <p className="type-eyebrow">Perspective when you need it</p>
         <h1 className="mt-2 type-page-title">{t("mentors.title")}</h1>
-        <p className="mt-3 max-w-2xl type-body">Meet AI mentor personas built for different career paths. Describe what you are working toward and start a focused conversation instantly—no scheduling or waiting.</p>
+        <p className="mt-3 type-body">Describe your career goal in your own words. Mentors are ranked by how well their expertise matches it, and each card says why.</p>
       </div>
 
       <form onSubmit={submit} className="mb-4 space-y-3">
@@ -48,12 +53,23 @@ export default function MentorMarketplace() {
           </div>
           <Button type="submit" icon={SlidersHorizontal}>Find mentors</Button>
         </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <select aria-label="Language" value={language} onChange={(e) => setLanguage(e.target.value)} className="min-h-11 rounded-full border border-border bg-off-white px-4 text-sm">
+            <option value="">Any language</option><option>English</option><option>Hindi</option><option>Marathi</option>
+          </select>
+          <select aria-label="Budget" value={maxRate} onChange={(e) => setMaxRate(e.target.value)} className="min-h-11 rounded-full border border-border bg-off-white px-4 text-sm">
+            <option value="">Any budget</option><option value="500">Up to Rs. 500/hr</option><option value="600">Up to Rs. 600/hr</option><option value="700">Up to Rs. 700/hr</option>
+          </select>
+          <select aria-label="Minimum rating" value={minRating} onChange={(e) => setMinRating(e.target.value)} className="min-h-11 rounded-full border border-border bg-off-white px-4 text-sm">
+            <option value="">Any rating</option><option value="4.5">4.5 and above</option><option value="4.7">4.7 and above</option>
+          </select>
+          <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-text-dark">
+            <input type="checkbox" checked={availableOnly} onChange={(e) => setAvailableOnly(e.target.checked)} /> Available now
+          </label>
+        </div>
       </form>
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <Tabs className="w-fit" tabs={categories} active={category} onChange={setCategory} />
-        <p className="text-sm text-text-muted">{mentors.length} mentor personas available</p>
-      </div>
+      <Tabs className="mb-6 w-fit" tabs={categories} active={category} onChange={setCategory} />
 
       {loading ? <Loader label="Matching mentors..." /> : mentors.length === 0 ? (
         <EmptyState icon={Search} title="No mentors found" description="Try removing a filter or describing your goal differently." />

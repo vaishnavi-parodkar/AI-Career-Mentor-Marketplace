@@ -151,7 +151,7 @@ export default function Roadmap() {
       </div>
 
       {roadmap && !roadmapLoading && (
-        <div className="mx-auto mb-9 max-w-5xl">
+        <div className="mx-auto mb-9 max-w-2xl">
           {gapProgress ? (
             <GapProgressPanel progress={gapProgress} title="Your skill gap, live" />
           ) : (
@@ -165,7 +165,7 @@ export default function Roadmap() {
         </div>
       )}
 
-      <div className="relative mx-auto max-w-5xl">
+      <div className="relative mx-auto max-w-2xl">
         {roadmapLoading ? (
           <Card elevated>
             <div className="p-6 text-center">
@@ -283,7 +283,7 @@ export default function Roadmap() {
         )}
       </div>
 
-      <div className="mx-auto mt-2 flex max-w-5xl flex-col gap-3 sm:flex-row">
+      <div className="mx-auto mt-2 flex max-w-2xl flex-col gap-3 sm:flex-row">
         <Button
           variant="outline"
           size="lg"
