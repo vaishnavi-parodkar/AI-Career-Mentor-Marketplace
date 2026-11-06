@@ -117,13 +117,6 @@ export default function Navbar() {
                 </NavLink>
               ))}
               <NavLink
-                to="/sessions"
-                onClick={() => setOpen(false)}
-                className="focus-ring rounded-xl px-4 py-3 text-base font-semibold text-text-dark"
-              >
-                {t("nav.sessions")}
-              </NavLink>
-              <NavLink
                 to="/profile"
                 onClick={() => setOpen(false)}
                 className="focus-ring rounded-xl px-4 py-3 text-base font-semibold text-text-dark"
