@@ -61,7 +61,7 @@ export default function Welcome() {
           <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-dark-green to-transparent" />
 
           <div className="container-app grid min-h-[760px] items-end gap-12 pb-16 pt-32 sm:pb-20 lg:grid-cols-[1fr_0.78fr] lg:items-center lg:gap-16 lg:pb-12">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl anim-reveal">
               <p className="type-eyebrow mb-6 text-sage">Assessment-based career guidance</p>
               <h1 className="mb-6 max-w-2xl font-heading text-5xl font-bold leading-[1.02] text-off-white sm:text-6xl lg:text-7xl">
                 Find work that feels like a direction, not a guess.
@@ -83,7 +83,7 @@ export default function Welcome() {
                 size={280}
                 strokeWidth={1.15}
                 aria-hidden="true"
-                className="h-48 w-48 bg-transparent text-sage drop-shadow-[0_24px_50px_rgba(0,0,0,0.22)] sm:h-64 sm:w-64 lg:h-80 lg:w-80"
+                className="anim-float h-48 w-48 bg-transparent text-sage drop-shadow-[0_24px_50px_rgba(0,0,0,0.22)] sm:h-64 sm:w-64 lg:h-80 lg:w-80"
               />
             </div>
           </div>
@@ -101,8 +101,8 @@ export default function Welcome() {
           <div className="relative grid gap-9 md:grid-cols-4 md:gap-5">
             <div className="absolute left-0 right-0 top-7 hidden h-px bg-border md:block" />
             {journey.map((step) => (
-              <div key={step.number} className="relative">
-                <div className="mb-5 flex h-14 w-14 items-center justify-center border border-dark-green bg-cream text-dark-green">
+              <div key={step.number} className="group relative transition-transform duration-300 hover:-translate-y-1">
+                <div className="mb-5 flex h-14 w-14 items-center justify-center border border-dark-green bg-cream text-dark-green transition-colors duration-300 group-hover:bg-light-sage">
                   <step.icon size={23} strokeWidth={1.7} aria-hidden="true" />
                 </div>
                 <p className="type-meta mb-2 text-coral">{step.number}</p>

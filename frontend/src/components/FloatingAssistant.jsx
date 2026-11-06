@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { Sparkles, X, Send, PanelRightClose, History, Plus, Trash2 } from "lucide-react";
 import { assistantApi } from "../services/platformApi";
 import { useLanguage } from "../i18n";
+import FormattedText from "./FormattedText";
 
 const welcomeMsg = () => [{ role: "assistant", content: "" }];
 
@@ -89,7 +90,7 @@ export default function FloatingAssistant() {
           <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
             {messages.map((m, i) => (
               <div key={i} className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "ml-auto bg-dark-green text-off-white" : "bg-light-sage text-text-dark"}`}>
-                {m.content || t("assistant.hello")}
+                {m.content ? <FormattedText>{m.content}</FormattedText> : t("assistant.hello")}
               </div>
             ))}
             {busy && <div className="w-16 rounded-2xl bg-light-sage px-4 py-2.5 text-sm text-text-muted">...</div>}

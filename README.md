@@ -44,14 +44,14 @@ An AI-assisted career guidance platform for students and early-career candidates
 | --- | --- | --- |
 | Auth (signup, login, forgot/reset password) | Yes | Spring Boot + MySQL |
 | Career profile | Yes | Spring Boot + MySQL |
-| Career assessment & scoring | Yes | Questions in `src/data/questions.js`; result persisted via `/api/assessment/submit` |
+| Career assessment & scoring | Yes | Questions in `frontend/src/data/questions.js`; result persisted via `/api/assessment/submit` |
 | Career list / detail / recommendations | Yes | Spring Boot + MySQL (6 seeded careers) |
 | Skill assessment | Yes | Spring Boot + MySQL (seeded questions) |
 | Skill-gap analysis | Yes | Spring Boot + Groq API |
 | Roadmap generation & step tracking | Yes | Spring Boot + Groq API |
 | Mock interview | Yes | Spring Boot + Groq API (history in `localStorage`) |
-| Mentor marketplace & mentor chat | Yes | **Mocked in the frontend** (`src/data/mentors.js`, canned replies). The backend has `/api/mentors` endpoints, but the UI does not call them and no mentors are seeded. |
-| Day-in-the-life, market insights, compare | Yes | Static content in `src/data/` |
+| Mentor marketplace & mentor chat | Yes | **Mocked in the frontend** (`frontend/src/data/mentors.js`, canned replies). The backend has `/api/mentors` endpoints, but the UI does not call them and no mentors are seeded. |
+| Day-in-the-life, market insights, compare | Yes | Static content in `frontend/src/data/` |
 
 
 **Live demo:** 
@@ -88,7 +88,7 @@ flowchart LR
 5. `POST /api/roadmaps/generate` asks Groq for a roadmap, which is stored as steps the user can mark complete.
 6. The mock interview calls `/api/mock-interview/questions` and `/api/mock-interview/evaluate`.
 
-The frontend talks to the backend at the hard-coded base URL `http://localhost:8080` (`src/services/api.js`, `src/services/interviewApi.js`).
+The frontend talks to the backend at the hard-coded base URL `http://localhost:8080` (`frontend/src/services/api.js`, `frontend/src/services/interviewApi.js`).
 
 
 ## Prerequisites
@@ -141,6 +141,7 @@ The frontend talks to the backend at the hard-coded base URL `http://localhost:8
 5. **Start the frontend** (in a second terminal, http://localhost:5173)
 
    ```bash
+   cd frontend
    npm install
    npm run dev
    ```
@@ -148,10 +149,11 @@ The frontend talks to the backend at the hard-coded base URL `http://localhost:8
 ### Other commands
 
 ```bash
-npm run build           # production build -> dist/
+cd frontend
+npm run build           # production build -> frontend/dist/
 npm run preview         # serve the production build locally
 npm run lint            # oxlint
-cd backend && ./mvnw test
+cd ..\backend && .\mvnw.cmd test
 ```
 
 > The only backend test is the default `contextLoads()` test, which requires a reachable MySQL database and the variables above.
@@ -165,7 +167,7 @@ The backend reads these from the process environment (referenced in `application
 | `DB_PASSWORD` | Yes | Password of the MySQL `root` user |
 | `GROQ_API_KEY` | For AI features | Groq API key, sent as a Bearer token |
 
-Other settings are hard-coded in `backend/src/main/resources/application.properties`: DB URL `jdbc:mysql://localhost:3306/aimentor`, DB user `root`, server port `8080`, Groq URL and model.
+Other settings are hard-coded in `backend/src/main/resources/application.properties`: database URL/user, server port `8080`, Groq URL and model.
 
 Example template (`.env.example`, for your own shell/IDE setup — the main backend does not load a `.env` file automatically):
 
@@ -248,10 +250,10 @@ Successful auth responses have the shape `{ "success": true, "user": {...}, "mes
 
 No deployment configuration (Dockerfile, CI, hosting manifests) is included. A manual deployment would need to:
 
-1. Build the frontend with `npm run build` and serve `dist/` from any static host (configure SPA fallback to `index.html`).
+1. Build the frontend with `cd frontend && npm run build` and serve `frontend/dist/` from any static host (configure SPA fallback to `index.html`).
 2. Build the backend with `cd backend && ./mvnw clean package` and run the jar with Java 26.
 3. Provide a managed MySQL instance and set `DB_PASSWORD` and `GROQ_API_KEY`.
-4. Update the hard-coded `http://localhost:8080` base URL in `src/services/api.js` and `src/services/interviewApi.js`, and the allowed origins in `config/CorsConfig.java` (currently `localhost:5173` / `127.0.0.1:5173`).
+4. Update the hard-coded `http://localhost:8080` base URL in `frontend/src/services/api.js` and `frontend/src/services/interviewApi.js`, and the allowed origins in `config/CorsConfig.java` (currently `localhost:5173` / `127.0.0.1:5173`).
 
 ## Troubleshooting
 
@@ -291,6 +293,5 @@ _Proposed, not implemented:_
 ## Contributing
 
 1. Fork the repository and create a branch: `git checkout -b feature/your-feature`.
-2. Make your changes; run `npm run lint` and `cd backend && ./mvnw test`.
+2. Make your changes; run `cd frontend && npm run lint` and `cd ..\backend && .\mvnw.cmd test`.
 3. Commit with a clear message and open a pull request describing the change.
-
