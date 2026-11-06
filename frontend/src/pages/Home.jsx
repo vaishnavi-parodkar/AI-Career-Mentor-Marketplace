@@ -179,15 +179,15 @@ export default function Home() {
       </section>
 
       <section>
-        <Card className="flex flex-col items-start gap-5 border-dark-green bg-dark-green p-7 text-left sm:flex-row sm:items-center sm:p-8">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-off-white/10 text-off-white">
+        <Card className="flex flex-col items-start gap-5 border-dark-green/20 bg-off-white p-7 text-left sm:flex-row sm:items-center sm:p-8">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-light-sage text-dark-green">
             <Users size={26} aria-hidden="true" />
           </div>
           <div className="flex-1">
-            <h3 className="font-heading text-xl font-bold text-off-white">Need perspective on the road ahead?</h3>
-            <p className="mt-1 text-base leading-7 text-off-white/85">Talk with profession-specific AI mentors about skills, projects, and interview preparation.</p>
+            <h3 className="font-heading text-xl font-bold text-dark-green">Need perspective on the road ahead?</h3>
+            <p className="mt-1 text-base leading-7 text-text-muted">Talk with profession-specific AI mentors about skills, projects, and interview preparation.</p>
           </div>
-          <Button variant="coral" onClick={() => navigate("/mentors")}>
+          <Button variant="outline" onClick={() => navigate("/mentors")}>
             Meet mentors
           </Button>
         </Card>

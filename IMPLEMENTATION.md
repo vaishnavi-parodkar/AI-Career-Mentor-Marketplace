@@ -3,12 +3,12 @@
 ## Run it
 1. Backend: set the variables in `backend/.env.example`, then `cd backend && ./mvnw spring-boot:run` (Java 26, MySQL).
    Tables are created automatically (`ddl-auto=update`); mentors are seeded on first start.
-2. Frontend: `npm install && npm run dev` (set `VITE_API_URL` if the backend is not on localhost:8080).
+2. Frontend: `cd frontend && npm install && npm run dev` (set `VITE_API_URL` if the backend is not on localhost:8080).
 3. Sign up, or log in with the `ADMIN_EMAIL` account to see the **Admin** tab.
 
 **The backend was written without being compiled** (the build environment had no Maven Central access).
 Run `./mvnw -q compile` first; if anything fails, the error will point at one file. The frontend was built
-with `npm run build` successfully.
+with `cd frontend && npm run build` successfully.
 
 ## What changed in the architecture
 | Area | What was added |

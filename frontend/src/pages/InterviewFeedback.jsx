@@ -27,7 +27,7 @@ export default function InterviewFeedback() {
   if (!feedback) {
     return (
       <Layout>
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-5xl">
           <EmptyState
             icon={Mic}
             title="No interview results yet"
@@ -43,7 +43,7 @@ export default function InterviewFeedback() {
 
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-light-sage text-dark-green">
             <Award size={30} aria-hidden="true" />
